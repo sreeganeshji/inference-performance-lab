@@ -9,12 +9,31 @@ if [[ "$(stat -f -c %T "$repo_root")" == nfs* ]]; then
 fi
 
 if ! command -v uv >/dev/null 2>&1; then
-    echo "error: uv is required: https://docs.astral.sh/uv/" >&2
-    exit 1
+    echo "uv not found; installing it..."
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    export PATH="$HOME/.local/bin:$PATH"
 fi
 
-uv python install
-uv sync --locked
+uv --version
+
+if [[ -x /usr/bin/python3.12 ]]; then
+    python_bin=/usr/bin/python3.12
+else
+    uv python install 3.12
+    python_bin="$(uv python find 3.12)"
+fi
+
+if [[ ! -x .venv/bin/python ]]; then
+    echo "Creating or replacing unusable virtual environment..."
+    uv venv --clear --python "$python_bin" .venv
+fi
+
+uv sync --locked --python "$python_bin"
+
+if ! uv run --locked --no-sync python -c "import torch, vllm"; then
+    echo "Environment payload is inconsistent; reinstalling locked packages..."
+    uv sync --locked --python "$python_bin" --reinstall
+fi
 
 echo "Bootstrap complete."
-echo "Run project commands with: uv run --locked <command>"
+echo "Run project commands with: uv run --locked --no-sync <command>"

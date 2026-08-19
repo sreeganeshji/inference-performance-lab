@@ -19,7 +19,7 @@ else
     echo "nvcc: unavailable"
 fi
 
-uv run --locked python - <<'PY'
+uv run --locked --no-sync python - <<'PY'
 import sys
 import torch
 import vllm
