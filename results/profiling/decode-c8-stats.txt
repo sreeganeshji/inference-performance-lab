@@ -1,0 +1,97 @@
+Generating SQLite file artifacts/profiles/qwen-a100-c8.sqlite from artifacts/profiles/qwen-a100-c8.nsys-rep
+Processing [artifacts/profiles/qwen-a100-c8.sqlite] with [/opt/nvidia/nsight-systems-cli/2026.4.1/target-linux-x64/reports/cuda_gpu_kern_sum.py]... 
+
+ ** CUDA GPU Kernel Summary (cuda_gpu_kern_sum):
+
+ Time (%)  Total Time (ns)  Instances  Avg (ns)  Med (ns)  Min (ns)  Max (ns)  StdDev (ns)                                                  Name                                                
+ --------  ---------------  ---------  --------  --------  --------  --------  -----------  ----------------------------------------------------------------------------------------------------
+     63.2       2057736990      14398  142918.3  190464.0     24224    777920     108795.7  ampere_bf16_s16816gemm_bf16_64x64_sliced1x2_ldg8_f2f_stages_64x5_tn                                 
+     11.5        373588859       3556  105058.7  104993.0    102849    110208        776.1  ampere_s16816gemm_bf16_128x64_ldg8_stages_32x6_tn                                                   
+      6.7        218246045       7084   30808.3   30848.0     29248     35104        758.5  ampere_bf16_s16816gemm_bf16_64x64_ldg8_relu_f2f_stages_64x5_tn                                      
+      4.3        140599339        252  557933.9  316033.0    169568   2026178     551325.2  ampere_bf16_s16816gemm_bf16_256x128_ldg8_f2f_stages_64x3_tn                                         
+      3.4        109689785       3556   30846.4   30816.0     30048     34400        310.7  ampere_s16816gemm_bf16_64x64_ldg8_stages_64x6_tn                                                    
+      2.3         75673866       7112   10640.3   11536.0      8128     14144       2170.1  void flash::flash_fwd_splitkv_kernel<Flash_fwd_kernel_traits<(int)128, (int)64, (int)128, (int)4, (…
+      1.3         42147926      14168    2974.9    2912.0      2720      5088        203.5  void at::native::elementwise_kernel<(int)128, (int)4, void at::native::gpu_kernel_impl_nocast<at::n…
+      0.9         28866885       3528    8182.2    8064.0      7872     10752        519.3  void flash::flash_fwd_splitkv_combine_kernel<Flash_fwd_kernel_traits<(int)128, (int)64, (int)128, (…
+      0.8         25546083       7224    3536.3    3328.0      3008     43456       2463.3  triton_red_fused_fused_add_rms_norm_2                                                               
+      0.8         25299127       7224    3502.1    3360.0      3104     27488       1479.4  triton_red_fused_fused_add_rms_norm_0                                                               
+      0.7         24247962       7224    3356.6    2752.0      2240    146080       9014.6  triton_poi_fused_mul_silu_slice_1                                                                   
+      0.7         22639378       7224    3133.9    3008.0      2752     19424       1032.4  void vllm::reshape_and_cache_flash_kernel<__nv_bfloat16, __nv_bfloat16, (vllm::Fp8KVCacheDataType)0…
+      0.7         22159357       3556    6231.5    6208.0      6016      7232        112.4  void flash::flash_fwd_splitkv_combine_kernel<Flash_fwd_kernel_traits<(int)128, (int)64, (int)128, (…
+      0.6         19292826       7112    2712.7    2752.0      2496      3136        114.7  void cublasLt::splitKreduce_kernel<(int)32, (int)16, int, float, __nv_bfloat16, float, __nv_bfloat1…
+      0.6         18840111       6966    2704.6    2560.0      2304     23712       1324.0  triton_poi_fused_3                                                                                  
+      0.2          8119622         28  289986.5  293792.0    276768    298849       9360.6  ampere_bf16_s16816gemm_bf16_256x128_ldg8_relu_f2f_stages_64x3_tn                                    
+      0.2          5681510         28  202911.1  202960.0    201632    204321        640.4  ampere_bf16_s16816gemm_bf16_128x64_ldg8_f2f_stages_32x6_tn                                          
+      0.2          5078948         84   60463.7   64816.0     50400     66272       6770.2  ampere_bf16_s16816gemm_bf16_128x128_ldg8_relu_f2f_stages_64x3_tn                                    
+      0.2          4891778         84   58235.5   63040.0     48288     63552       7022.2  ampere_bf16_s16816gemm_bf16_128x128_ldg8_f2f_stages_64x3_tn                                         
+      0.1          3664355         56   65434.9   64976.0     23936    108288      41353.2  ampere_bf16_s16816gemm_bf16_64x64_sliced1x2_ldg8_f2f_stages_64x6_tn                                 
+      0.1          3432068        112   30643.5   24880.0     17632     58112      14587.5  void flash::flash_fwd_splitkv_kernel<Flash_fwd_kernel_traits<(int)128, (int)64, (int)128, (int)4, (…
+      0.1          3286787        258   12739.5   12112.0      9312     17984       2629.5  _gumbel_sample_kernel                                                                               
+      0.1          1906368        258    7389.0    7328.0      6432      8928        263.4  _gather_block_tables_kernel                                                                         
+      0.1          1791329        258    6943.1    6880.0      5312      8352        285.1  _combine_sampled_and_draft_tokens_kernel                                                            
+      0.1          1734499        258    6722.9    6784.0      5024      8736        637.1  _post_update_kernel                                                                                 
+      0.1          1687264        258    6539.8    6464.0      5568      7872        260.7  _get_num_sampled_and_rejected_kernel                                                                
+      0.1          1632136        258    6326.1    6176.0      5632      8288        371.6  void at::native::reduce_kernel<(int)512, (int)1, at::native::ReduceOp<float, at::native::ArgMaxOps<…
+      0.0          1351713        258    5239.2    5184.0      4960      6368        216.3  void at::native::index_elementwise_kernel<(int)128, (int)4, void at::native::gpu_index_kernel<void …
+      0.0          1179745        258    4572.7    4448.0      4160     22112       1160.5  triton_red_fused__to_copy_embedding_rms_norm_0                                                      
+      0.0          1031712        258    3998.9    3968.0      3776      5152        197.6  void at::native::index_elementwise_kernel<(int)128, (int)4, void at::native::gpu_index_kernel<void …
+      0.0           967489        258    3750.0    3712.0      3456      4832        199.4  _compute_slot_mappings_kernel                                                                       
+      0.0           843489         28   30124.6   30080.0     29408     31392        439.1  ampere_bf16_s16816gemm_bf16_64x64_sliced1x2_ldg8_relu_f2f_stages_64x6_tn                            
+      0.0           825150        258    3198.3    3072.0      2496     22688       1274.8  triton_poi_fused_1                                                                                  
+      0.0           735040        255    2882.5    2816.0      2784      3616        129.7  void at::native::vectorized_gather_kernel<(int)16, long>(char *, char *, T2 *, int, long, long, lon…
+      0.0           714432        516    1384.6    1376.0      1248      1856         92.6  void at::native::vectorized_elementwise_kernel<(int)4, at::native::FillFunctor<int>, std::array<cha…
+      0.0           599424        258    2323.3    2272.0      1856      2944        143.4  _prepare_pos_seq_lens_kernel                                                                        
+      0.0           587488        258    2277.1    2304.0      1952      3936        204.5  void at::native::_scatter_gather_elementwise_kernel<(int)128, (int)8, void at::native::_cuda_scatte…
+      0.0           398689        258    1545.3    1504.0      1472      2176         95.8  void at::native::vectorized_elementwise_kernel<(int)4, at::native::FillFunctor<bool>, std::array<ch…
+      0.0           358560        258    1389.8    1408.0      1280      1824         88.6  void <unnamed>::elementwise_kernel_with_index<int, at::native::arange_cuda_out(const c10::Scalar &,…
+      0.0           339810         46    7387.2    7056.0      6592      9600        733.2  _apply_write_kernel                                                                                 
+      0.0           323616         28   11557.7   11552.0     11424     11840        104.5  void flash::flash_fwd_splitkv_combine_kernel<Flash_fwd_kernel_traits<(int)128, (int)64, (int)128, (…
+      0.0            87136         28    3112.0    3136.0      2944      3328         92.8  void cublasLt::splitKreduce_kernel<(int)32, (int)16, int, __nv_bfloat16, __nv_bfloat16, float, __nv…
+      0.0            34880          4    8720.0    8528.0      7360     10464       1288.1  _prepare_prefill_inputs_kernel                                                                      
+      0.0            21056          3    7018.7    6560.0      6368      8128        965.5  void at::native::index_elementwise_kernel<(int)128, (int)4, void at::native::gpu_index_kernel<void …
+      0.0             3072          2    1536.0    1536.0      1344      1728        271.5  void at::native::unrolled_elementwise_kernel<at::native::FillFunctor<bool>, std::array<char *, (uns…
+
+Processing [artifacts/profiles/qwen-a100-c8.sqlite] with [/opt/nvidia/nsight-systems-cli/2026.4.1/target-linux-x64/reports/cuda_api_sum.py]... 
+
+ ** CUDA API Summary (cuda_api_sum):
+
+ Time (%)  Total Time (ns)  Num Calls  Avg (ns)   Med (ns)   Min (ns)  Max (ns)  StdDev (ns)            Name          
+ --------  ---------------  ---------  ---------  ---------  --------  --------  -----------  ------------------------
+     89.3       2388036315        258  9255954.7  8955129.0      6801  88837860    5111096.8  cudaEventSynchronize    
+      7.3        195383304        341   572971.6   702368.0     32569   1095293     314690.0  cudaGraphLaunch         
+      1.3         35445405       2918    12147.2    11230.5      6400    302893       7721.3  cudaLaunchKernel        
+      0.8         21716439       1856    11700.7    11610.5      7640     38241       3404.1  cuLaunchKernelEx        
+      0.5         13180254       1078    12226.6    12419.0      6300     64561       4622.3  cudaMemcpyAsync         
+      0.3          7194570       2145     3354.1     2971.0       990     28819       1905.9  cudaEventQuery          
+      0.2          5191717       1594     3257.0     3130.0       880     34260       2051.1  cudaEventRecordWithFlags
+      0.1          2492789       2930      850.8      640.0       329     36761       1032.7  cudaStreamIsCapturing   
+      0.1          1449355       2918      496.7      420.0       240     23520        565.6  cuKernelGetName         
+      0.0          1071714        516     2077.0     1560.0       920     43659       2832.3  cudaEventDestroy        
+      0.0          1006413        516     1950.4     2075.5      1310      3150        389.0  cudaEventCreateWithFlags
+      0.0           784517        113     6942.6     6671.0      5311     25751       2163.7  cuLaunchKernel          
+      0.0           696360        258     2699.1     2430.0      2320     27930       2281.5  cudaStreamWaitEvent     
+      0.0           159433          7    22776.1    17940.0     11360     36151       9675.5  cudaHostAlloc           
+      0.0             1691          1     1691.0     1691.0      1691      1691          0.0  cuLibraryGetKernel      
+
+Processing [artifacts/profiles/qwen-a100-c8.sqlite] with [/opt/nvidia/nsight-systems-cli/2026.4.1/target-linux-x64/reports/nvtx_sum.py]... 
+
+ ** NVTX Range Summary (nvtx_sum):
+
+ Time (%)  Total Time (ns)  Instances    Avg (ns)      Med (ns)     Min (ns)    Max (ns)   StdDev (ns)   Style                                      Range                                  
+ --------  ---------------  ---------  ------------  ------------  ----------  ----------  -----------  --------  -------------------------------------------------------------------------
+     94.8      16857321437         10  1685732143.7  1694983477.0  1600929605  1700430849   30049164.2  StartEnd  vLLM:LLM Generate (cmpl)                                                 
+      1.5        269232041        127     2119937.3     1931262.0     1763001    19714728    1585068.1  PushPop   vLLM:Worker.execute_model: cmpl, cmpl, cmpl, cmpl, cmpl, cmpl, cmpl, cmpl
+      1.4        247301058        127     1947252.4     1841382.0     1675768    10313689     763116.7  PushPop   vLLM:Worker.execute_model: cmpl, cmpl                                    
+      0.6        110895776        127      873195.1      861471.0      829269     1703769      95321.0  PushPop   vLLM:Sampler: cmpl, cmpl, cmpl, cmpl, cmpl, cmpl, cmpl, cmpl             
+      0.6        108436481        127      853830.6      852229.0      822741      964991      20927.6  PushPop   vLLM:Sampler: cmpl, cmpl                                                 
+      0.3         44758640          4    11189660.0     9412654.5     8352498    17580833    4296910.8  PushPop   PyTorch:Forward                                                          
+      0.3         44751800          4    11187950.0     9410860.0     8351017    17579063    4296858.4  PushPop   PyTorch:Qwen2ForCausalLM                                                 
+      0.2         38663698          3    12887899.3    11313931.0     2439588    24910179   11317680.7  PushPop   vLLM:Worker.execute_model: cmpl                                          
+      0.1         26444453        258      102497.9       73800.5       71851     6069701     376148.4  PushPop   PyTorch:Qwen2ForCausalLM.logits_processor                                
+      0.1         21572840        562       38385.8       42035.5       22400     1129022      47960.5  PushPop   PyTorch:torch.Tensor.to                                                  
+      0.1         11582555          3     3860851.7      958901.0      850080     9773574    5120856.8  PushPop   vLLM:Sampler: cmpl                                                       
+      0.0          1916703          1     1916703.0     1916703.0     1916703     1916703          0.0  PushPop   vLLM:Worker.execute_model: cmpl, cmpl, cmpl, cmpl, cmpl, cmpl, cmpl      
+      0.0          1882645        258        7297.1        5920.0        5560      253533      15535.0  PushPop   PyTorch:torch.Tensor.item                                                
+      0.0           899751          1      899751.0      899751.0      899751      899751          0.0  PushPop   vLLM:Sampler: cmpl, cmpl, cmpl, cmpl, cmpl, cmpl, cmpl                   
+      0.0           879021          4      219755.3      174487.0      133952      396095     123520.2  PushPop   vLLM:Worker.execute_model:                                               
+

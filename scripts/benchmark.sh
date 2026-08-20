@@ -5,15 +5,26 @@ repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$repo_root/scripts/env.sh"
 cd "$repo_root"
 
-concurrency="${1:-1}"
+concurrency="${1:-${CONCURRENCY:-1}}"
+input_len="${INPUT_LEN:-256}"
+output_len="${OUTPUT_LEN:-128}"
 num_prompts="${NUM_PROMPTS:-32}"
+protocol="${PROTOCOL:-prefix-cache-off}"
+
+if ((input_len + output_len > 4096)); then
+    echo "error: input_len + output_len must not exceed 4096" >&2
+    exit 1
+fi
+
 revision="a09a35458c702b33eeacc393d103063234e8bc28"
 snapshot="$HF_HUB_CACHE/models--Qwen--Qwen2.5-7B-Instruct/snapshots/$revision"
 
-mkdir -p artifacts/raw
-timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
-result_stem="qwen-a100-c${concurrency}-${timestamp}"
-output="artifacts/raw/${result_stem}.txt"
+artifact_dir="${RESULT_DIR:-artifacts/raw/$protocol}"
+mkdir -p "$artifact_dir"
+
+timestamp="$(date -u +%Y%m%dT%H%M%S%3NZ)"
+result_stem="qwen-a100-${protocol}-i${input_len}-o${output_len}-c${concurrency}-${timestamp}"
+output="$artifact_dir/${result_stem}.txt"
 
 uv run --locked --no-sync vllm bench serve \
     --backend openai \
@@ -23,8 +34,8 @@ uv run --locked --no-sync vllm bench serve \
     --tokenizer "$snapshot" \
     --dataset-name random \
     --num-prompts "$num_prompts" \
-    --random-input-len 256 \
-    --random-output-len 128 \
+    --random-input-len "$input_len" \
+    --random-output-len "$output_len" \
     --random-range-ratio 0 \
     --ignore-eos \
     --request-rate inf \
@@ -36,6 +47,7 @@ uv run --locked --no-sync vllm bench serve \
     --metric-percentiles 50,90,95,99 \
     --save-result \
     --save-detailed \
-    --result-dir artifacts/raw \
+    --result-dir "$artifact_dir" \
     --result-filename "${result_stem}.json" \
     2>&1 | tee "$output"
+    

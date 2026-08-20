@@ -14,6 +14,7 @@ exec uv run --locked --no-sync vllm serve "$model" \
     --dtype bfloat16 \
     --max-model-len 4096 \
     --gpu-memory-utilization 0.90 \
+    --no-enable-prefix-caching \
     --generation-config vllm \
     --seed 0 \
     --host 127.0.0.1 \
