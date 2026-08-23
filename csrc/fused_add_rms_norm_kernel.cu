@@ -26,7 +26,7 @@ __device__ __forceinline__ float warp_reduce_sum(float value) {
 }
 
 
-__global__ void fused_add_rms_norm_bf16_kernel(
+__global__ void fused_add_rms_norm_bf16_generic_kernel(
     at::BFloat16* x,
     at::BFloat16* residual,
     const at::BFloat16* weight,
@@ -103,6 +103,96 @@ __global__ void fused_add_rms_norm_bf16_kernel(
     }
 }
 
+template <int HiddenSize>
+__global__ __launch_bounds__(kBlockSize)
+void fused_add_rms_norm_bf16_cached_kernel(
+    at::BFloat16* x,
+    at::BFloat16* residual,
+    const at::BFloat16* weight,
+    float epsilon) {
+    static_assert(
+        HiddenSize % kBlockSize == 0,
+        "hidden size must divide evenly across the block");
+
+    constexpr int kElementsPerThread =
+        HiddenSize / kBlockSize;
+
+    const int row = blockIdx.x;
+    const int lane = threadIdx.x % kWarpSize;
+    const int warp = threadIdx.x / kWarpSize;
+    const int num_warps = blockDim.x / kWarpSize;
+
+    x += static_cast<int64_t>(row) * HiddenSize;
+    residual += static_cast<int64_t>(row) * HiddenSize;
+
+    float values[kElementsPerThread];
+    float sum_of_squares = 0.0f;
+
+#pragma unroll
+    for (int item = 0;
+         item < kElementsPerThread;
+         ++item) {
+        const int column =
+            threadIdx.x + item * kBlockSize;
+
+        const float value =
+            static_cast<float>(x[column])
+            + static_cast<float>(residual[column]);
+
+        values[item] = value;
+        sum_of_squares = fmaf(
+            value,
+            value,
+            sum_of_squares);
+    }
+
+    sum_of_squares = warp_reduce_sum(sum_of_squares);
+
+    __shared__ float warp_sums[kBlockSize / kWarpSize];
+    __shared__ float inverse_rms;
+
+    if (lane == 0) {
+        warp_sums[warp] = sum_of_squares;
+    }
+
+    __syncthreads();
+
+    if (warp == 0) {
+        float block_sum =
+            lane < num_warps
+                ? warp_sums[lane]
+                : 0.0f;
+
+        block_sum = warp_reduce_sum(block_sum);
+
+        if (lane == 0) {
+            inverse_rms = rsqrtf(
+                block_sum
+                    / static_cast<float>(HiddenSize)
+                + epsilon);
+        }
+    }
+
+    __syncthreads();
+
+#pragma unroll
+    for (int item = 0;
+         item < kElementsPerThread;
+         ++item) {
+        const int column =
+            threadIdx.x + item * kBlockSize;
+        const float residual_value = values[item];
+
+        residual[column] =
+            static_cast<at::BFloat16>(residual_value);
+
+        x[column] = static_cast<at::BFloat16>(
+            residual_value
+            * inverse_rms
+            * static_cast<float>(weight[column]));
+    }
+}
+
 }  // namespace
 
 
@@ -169,7 +259,18 @@ void fused_add_rms_norm_cuda(
     const cudaStream_t stream =
         at::cuda::getCurrentCUDAStream(x.get_device());
 
-    fused_add_rms_norm_bf16_kernel<<<
+if (hidden_size == 3584) {
+    fused_add_rms_norm_bf16_cached_kernel<3584><<<
+        static_cast<int>(rows),
+        kBlockSize,
+        0,
+        stream>>>(
+        x.data_ptr<at::BFloat16>(),
+        residual.data_ptr<at::BFloat16>(),
+        weight.data_ptr<at::BFloat16>(),
+        static_cast<float>(epsilon));
+} else {
+    fused_add_rms_norm_bf16_generic_kernel<<<
         static_cast<int>(rows),
         kBlockSize,
         0,
@@ -179,6 +280,7 @@ void fused_add_rms_norm_cuda(
         weight.data_ptr<at::BFloat16>(),
         static_cast<int>(hidden_size),
         static_cast<float>(epsilon));
+}
 
     C10_CUDA_KERNEL_LAUNCH_CHECK();
 }

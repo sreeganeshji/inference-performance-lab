@@ -29,7 +29,11 @@ def load_extension(*, verbose: bool = False) -> None:
             ),
         ],
         extra_cflags=["-O3"],
-        extra_cuda_cflags=["-O3", "-lineinfo"],
+        extra_cuda_cflags=[
+            "-O3",
+            "-lineinfo",
+            "--ptxas-options=-v",
+        ],
         build_directory=str(build_directory),
         is_python_module=False,
         verbose=verbose,
