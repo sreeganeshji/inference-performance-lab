@@ -21,3 +21,4 @@ artifacts/raw/
 *.nsys-rep
 *.sqlite
 *.ncu-rep
+results/data/rmsnorm/**/*.txt

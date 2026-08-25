@@ -16,3 +16,6 @@ build-backend = "uv_build"
 dev = [
     "pytest>=9.1.1",
 ]
+
+[project.entry-points."vllm.general_plugins"]
+inference_performance_lab = "inference_performance_lab.kernels.vllm_plugin:register"
