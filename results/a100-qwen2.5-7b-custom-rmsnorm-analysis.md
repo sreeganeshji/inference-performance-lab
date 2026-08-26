@@ -95,29 +95,35 @@ serving.
 
 ## Production-path profiling evidence
 
-Nsight Systems captured the following custom kernel during a prefill-heavy
-vLLM serving workload:
+Nsight Systems captured both providers under the same prefill-heavy vLLM
+serving workload.
+
+| Provider | Launches | Total GPU time | Average | Median | Kernel-time share |
+|---|---:|---:|---:|---:|---:|
+| `vllm_c` | 6,104 | 50.373 ms | 8.252 us | 3.456 us | 1.5% |
+| `inference_lab` | 6,104 | 51.742 ms | 8.477 us | 3.904 us | 1.5% |
+
+The custom trace contained:
 
 `fused_add_rms_norm_bf16_packed_cached_kernel<3584>`
 
-- Kernel launches: 6,104
-- Total GPU time: 51.742 ms
-- Average duration: 8.477 us
-- Median duration: 3.904 us
-- Share of traced CUDA kernel time: 1.5%
+This confirms that vLLM selected and executed the custom CUDA kernel through
+the production serving path rather than only in a microbenchmark.
 
-This confirms that the plugin selected and executed the custom CUDA kernel
-inside the real model-serving path rather than only in a microbenchmark.
+The custom implementation consumed 2.72% more aggregate RMSNorm GPU time in
+the matched serving workload, despite outperforming vLLM in the standalone
+microbenchmark. The isolated benchmark therefore did not fully represent the
+dynamic shapes or execution conditions encountered during serving.
 
 ## Interpretation
 
 The standalone optimization is real, but RMSNorm is too small a fraction of
 the tested serving workload to substantially change application throughput.
 
-Using the observed 1.5% kernel-time share, even a 15% RMSNorm speedup provides
-an Amdahl's-law upper bound of roughly 0.2% overall improvement, before
-considering CPU scheduling, launch overhead, attention, GEMMs, and other
-serving costs.
+Using the observed 1.5% kernel-time share, even if the approximately 15%
+standalone RMSNorm speedup had transferred perfectly to serving, Amdahl's law
+would limit the overall improvement to roughly 0.2%, before considering CPU
+scheduling, launch overhead, attention, GEMMs, and other serving costs.
 
 The main project outcome is therefore not an unsupported end-to-end speedup
 claim. It is a reproducible demonstration of:
@@ -138,13 +144,4 @@ claim. It is a reproducible demonstration of:
 - The custom specialization only targets BF16 hidden size 3584.
 - The trace reports kernel-time share for one controlled workload, not every
   possible serving workload.
-
-| Provider | Launches | Total GPU time | Average | Median | Kernel-time share |
-|---|---:|---:|---:|---:|---:|
-| `vllm_c` | 6,104 | 50.373 ms | 8.252 us | 3.456 us | 1.5% |
-| `inference_lab` | 6,104 | 51.742 ms | 8.477 us | 3.904 us | 1.5% |
-
-The custom implementation consumed 2.72% more aggregate RMSNorm GPU time in
-the matched serving workload, despite outperforming vLLM in the standalone
-microbenchmark. The isolated benchmark therefore did not fully represent the
-dynamic shapes or execution conditions encountered during serving.
+  
