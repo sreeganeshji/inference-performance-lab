@@ -85,6 +85,14 @@ throughput is better; negative latency is better.
 The differences are small and mixed. They should not be interpreted as a
 meaningful end-to-end serving speedup.
 
+A matched `vllm_c` trace contained the same 6,104 RMSNorm launches but used
+50.373 ms of total GPU time, averaging 8.252 us with a median of 3.456 us.
+The custom implementation therefore consumed 2.72% more aggregate RMSNorm GPU
+time in this serving workload, despite outperforming vLLM in the standalone
+microbenchmark. This indicates that the isolated token-count benchmark did not
+fully represent the dynamic shapes or execution conditions encountered during
+serving.
+
 ## Production-path profiling evidence
 
 Nsight Systems captured the following custom kernel during a prefill-heavy
@@ -130,3 +138,13 @@ claim. It is a reproducible demonstration of:
 - The custom specialization only targets BF16 hidden size 3584.
 - The trace reports kernel-time share for one controlled workload, not every
   possible serving workload.
+
+| Provider | Launches | Total GPU time | Average | Median | Kernel-time share |
+|---|---:|---:|---:|---:|---:|
+| `vllm_c` | 6,104 | 50.373 ms | 8.252 us | 3.456 us | 1.5% |
+| `inference_lab` | 6,104 | 51.742 ms | 8.477 us | 3.904 us | 1.5% |
+
+The custom implementation consumed 2.72% more aggregate RMSNorm GPU time in
+the matched serving workload, despite outperforming vLLM in the standalone
+microbenchmark. The isolated benchmark therefore did not fully represent the
+dynamic shapes or execution conditions encountered during serving.
