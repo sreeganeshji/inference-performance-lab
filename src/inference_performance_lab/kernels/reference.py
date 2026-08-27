@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import torch
+from torch.nn import functional as F
 
 
 def fused_add_rms_norm_reference(
@@ -25,3 +26,14 @@ def fused_add_rms_norm_reference(
     output = residual_out_fp32 * inverse_rms * weight.float()
 
     return output.to(x.dtype), residual_out_fp32.to(residual.dtype)
+
+def silu_and_mul_reference(x: torch.Tensor) -> torch.Tensor:
+    """FP32 oracle for the fused SwiGLU activation."""
+
+    if x.ndim == 0 or x.shape[-1] % 2 != 0:
+        raise ValueError("the final tensor dimension must be even")
+
+    gate, up = x.float().chunk(2, dim=-1)
+    output = F.silu(gate) * up
+
+    return output.to(x.dtype)
