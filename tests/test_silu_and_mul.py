@@ -4,6 +4,7 @@ import vllm._custom_ops
 
 from inference_performance_lab.kernels.extension import (
     silu_and_mul as custom_silu_and_mul,
+    silu_and_mul_packed as custom_packed_silu_and_mul,
 )
 from inference_performance_lab.kernels.reference import (
     silu_and_mul_reference,
@@ -34,6 +35,10 @@ def vllm_silu_and_mul(x: torch.Tensor) -> torch.Tensor:
         pytest.param(
             custom_silu_and_mul,
             id="custom",
+        ),
+        pytest.param(
+            custom_packed_silu_and_mul,
+            id="custom-packed",
         ),
     ],
 )

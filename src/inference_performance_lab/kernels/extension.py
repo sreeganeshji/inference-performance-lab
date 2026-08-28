@@ -21,8 +21,8 @@ def load_extension(*, verbose: bool = False) -> None:
     load(
         name="inference_performance_lab_cuda",
         sources=[
-            str(repo_root / "csrc" / "fused_add_rms_norm.cpp"),
-            str(repo_root/ "csrc"/ "fused_add_rms_norm_kernel.cu"),
+            str(repo_root / "csrc" / "torch_ops.cpp"),
+            str(repo_root / "csrc"/ "fused_add_rms_norm_kernel.cu"),
             str(repo_root / "csrc" / "silu_and_mul_kernel.cu"),
         ],
         extra_cflags=["-O3"],
@@ -66,6 +66,28 @@ def silu_and_mul(x: torch.Tensor) -> torch.Tensor:
     )
 
     torch.ops.inference_performance_lab.silu_and_mul(
+        output,
+        x,
+    )
+
+    return output
+
+def silu_and_mul_packed(
+        x: torch.Tensor,
+    ) -> torch.Tensor:
+    load_extension()
+
+    if x.ndim == 0 or x.shape[-1] % 2 != 0:
+        raise ValueError("the final tensor dimension must be even")
+
+    output_shape = x.shape[:-1] + (x.shape[-1] // 2,)
+    output = torch.empty(
+        output_shape,
+        dtype=x.dtype,
+        device=x.device,
+    )
+
+    torch.ops.inference_performance_lab.silu_and_mul_packed(
         output,
         x,
     )
