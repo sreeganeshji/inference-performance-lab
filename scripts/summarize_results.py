@@ -7,12 +7,7 @@ from collections import defaultdict
 from pathlib import Path
 
 parser = argparse.ArgumentParser()
-parser.add_argument(
-    "results_dir",
-    nargs="?",
-    type=Path,
-    default=Path("results/data"),
-)
+parser.add_argument("results_dir", nargs="?", type=Path, default=Path("results/data"))
 parser.add_argument("--num-prompts", type=int, default=32)
 args = parser.parse_args()
 
@@ -22,27 +17,14 @@ for path in args.results_dir.glob("*.json"):
     with path.open() as file:
         result = json.load(file)
 
-    if (
-        result.get("num_prompts") != args.num_prompts
-        or result.get("failed", 0) != 0
-    ):
+    if result.get("num_prompts") != args.num_prompts or result.get("failed", 0) != 0:
         continue
 
     completed = result["completed"]
-    input_len = result.get(
-        "random_input_len",
-        result["total_input_tokens"] // completed,
-    )
-    output_len = result.get(
-        "random_output_len",
-        result["total_output_tokens"] // completed,
-    )
+    input_len = result.get("random_input_len", result["total_input_tokens"] // completed)
+    output_len = result.get("random_output_len", result["total_output_tokens"] // completed)
 
-    key = (
-        input_len,
-        output_len,
-        result["max_concurrency"],
-    )
+    key = (input_len, output_len, result["max_concurrency"])
 
     records[key].append(result)
 
@@ -75,4 +57,3 @@ for (input_len, output_len, concurrency), runs in sorted(records.items()):
             f"`{metric}` | {statistics.mean(values):.3f} | "
             f"{stddev:.3f} | {min(values):.3f} | {max(values):.3f} |"
         )
-        

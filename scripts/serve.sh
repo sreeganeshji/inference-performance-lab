@@ -23,10 +23,7 @@ case "$fused_rmsnorm_provider" in
         ;;
 esac
 
-ir_op_priority="$(
-    printf '{"fused_add_rms_norm":["%s"]}' \
-        "$fused_rmsnorm_provider"
-)"
+ir_op_priority="$(printf '{"fused_add_rms_norm":["%s"]}' "$fused_rmsnorm_provider")"
 
 echo "Fused RMSNorm provider: $fused_rmsnorm_provider"
 

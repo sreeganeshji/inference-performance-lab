@@ -1,72 +1,39 @@
 from collections.abc import Callable
 
 import torch
-import vllm._custom_ops
+import vllm._custom_ops  # noqa: F401  # Registers torch.ops._C.
 
-from inference_performance_lab.kernels.extension import (
-    load_extension,
-)
+from inference_performance_lab.kernels.extension import load_extension
 
-
-Implementation = Callable[
-    [torch.Tensor, torch.Tensor],
-    None,
-]
+Implementation = Callable[[torch.Tensor, torch.Tensor], None]
 
 INTERMEDIATE_SIZE = 18944
 TOKEN_COUNTS = [1, 8, 128, 2048]
-ITERATIONS = {
-    1: 2000,
-    8: 1000,
-    128: 300,
-    2048: 50,
-}
+ITERATIONS = {1: 2000, 8: 1000, 128: 300, 2048: 50}
 WARMUP_ITERATIONS = 25
 
 # Read gate and up BF16 values, then write one BF16 output.
 MINIMUM_BYTES_PER_OUTPUT = 6
 
 
-def vllm_silu_and_mul(
-        output: torch.Tensor,
-        x: torch.Tensor,
-    ) -> None:
+def vllm_silu_and_mul(output: torch.Tensor, x: torch.Tensor) -> None:
     torch.ops._C.silu_and_mul(output, x)
 
 
-def custom_scalar_silu_and_mul(
-        output: torch.Tensor,
-        x: torch.Tensor,
-    ) -> None:
-    torch.ops.inference_performance_lab.silu_and_mul(
-        output,
-        x,
-    )
+def custom_scalar_silu_and_mul(output: torch.Tensor, x: torch.Tensor) -> None:
+    torch.ops.inference_performance_lab.silu_and_mul(output, x)
 
-def custom_packed_silu_and_mul(
-        output: torch.Tensor,
-        x: torch.Tensor,
-    ) -> None:
+
+def custom_packed_silu_and_mul(output: torch.Tensor, x: torch.Tensor) -> None:
     torch.ops.inference_performance_lab.silu_and_mul_packed(output, x)
 
 
 @torch.inference_mode()
-def benchmark(
-    implementation: Implementation,
-    num_tokens: int,
-) -> tuple[float, float]:
+def benchmark(implementation: Implementation, num_tokens: int) -> tuple[float, float]:
     torch.manual_seed(0)
 
-    x = torch.randn(
-        (num_tokens, 2 * INTERMEDIATE_SIZE),
-        device="cuda",
-        dtype=torch.bfloat16,
-    )
-    output = torch.empty(
-        (num_tokens, INTERMEDIATE_SIZE),
-        device="cuda",
-        dtype=torch.bfloat16,
-    )
+    x = torch.randn((num_tokens, 2 * INTERMEDIATE_SIZE), device="cuda", dtype=torch.bfloat16)
+    output = torch.empty((num_tokens, INTERMEDIATE_SIZE), device="cuda", dtype=torch.bfloat16)
 
     for _ in range(WARMUP_ITERATIONS):
         implementation(output, x)
@@ -88,16 +55,8 @@ def benchmark(
     milliseconds = start.elapsed_time(end) / iterations
     microseconds = milliseconds * 1000.0
 
-    minimum_bytes = (
-        num_tokens
-        * INTERMEDIATE_SIZE
-        * MINIMUM_BYTES_PER_OUTPUT
-    )
-    effective_gbps = (
-        minimum_bytes
-        / (microseconds * 1e-6)
-        / 1e9
-    )
+    minimum_bytes = num_tokens * INTERMEDIATE_SIZE * MINIMUM_BYTES_PER_OUTPUT
+    effective_gbps = minimum_bytes / (microseconds * 1e-6) / 1e9
 
     return microseconds, effective_gbps
 
@@ -110,19 +69,13 @@ def main() -> None:
         "Custom scalar": custom_scalar_silu_and_mul,
         "Custom packed": custom_packed_silu_and_mul,
     }
-    results: dict[
-        str,
-        dict[int, tuple[float, float]],
-    ] = {}
+    results: dict[str, dict[int, tuple[float, float]]] = {}
 
     for name, implementation in implementations.items():
         results[name] = {}
 
         for num_tokens in TOKEN_COUNTS:
-            results[name][num_tokens] = benchmark(
-                implementation,
-                num_tokens,
-            )
+            results[name][num_tokens] = benchmark(implementation, num_tokens)
 
     print(
         "| Tokens | vLLM (us) | Scalar (us) | Packed (us) "

@@ -19,8 +19,7 @@ else
 fi
 
 package_is_installed() {
-    dpkg-query -W -f='${Status}' "$1" 2>/dev/null |
-        grep -qx 'install ok installed'
+    dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep -qx 'install ok installed'
 }
 
 packages=()

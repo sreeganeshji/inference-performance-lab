@@ -18,8 +18,6 @@ Install [uv](https://docs.astral.sh/uv/), then run:
 ```bash
 ./scripts/bootstrap.sh
 ./scripts/doctor.sh
-
-
 ```
 
 Run project commands without manually activating the environment:
@@ -27,6 +25,16 @@ Run project commands without manually activating the environment:
 ```bash
 uv run --locked <command>
 ```
+
+## Stable LibTorch ABI
+
+The CUDA extension targets the PyTorch 2.13 stable ABI. Its host wrappers use `torch::stable::Tensor`,
+`STABLE_TORCH_LIBRARY`, boxed kernel registration, header-only scalar types, and the stable accelerator API for
+device guards and CUDA streams. `TORCH_TARGET_VERSION=0x020d000000000000` is passed to both the C++ and CUDA
+compilers so accidental use of newer, incompatible APIs fails at build time.
+
+The CUDA kernels still operate directly on typed device pointers. Only the PyTorch-facing host integration changed;
+thread mapping, memory access, reductions, launch dimensions, and numerical behavior are unchanged.
 
 ## Reproducibility
 

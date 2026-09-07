@@ -5,8 +5,8 @@ from torch import Tensor
 
 from inference_performance_lab.kernels.extension import (
     fused_add_rms_norm as custom_fused_add_rms_norm,
-    load_extension,
 )
+from inference_performance_lab.kernels.extension import load_extension
 
 PROVIDER = "inference_lab"
 HIDDEN_SIZE = 3584
@@ -65,10 +65,5 @@ def register() -> None:
         assert weight is not None
         assert variance_size is None
 
-        custom_fused_add_rms_norm(
-            x,
-            x_residual,
-            weight,
-            epsilon,
-        )
+        custom_fused_add_rms_norm(x, x_residual, weight, epsilon)
         return x, x_residual

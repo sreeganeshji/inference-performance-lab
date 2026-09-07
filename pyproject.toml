@@ -19,3 +19,12 @@ dev = [
 
 [project.entry-points."vllm.general_plugins"]
 inference_performance_lab = "inference_performance_lab.kernels.vllm_plugin:register"
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.format]
+skip-magic-trailing-comma = true
+
+[tool.ruff.lint.isort]
+split-on-trailing-comma = false

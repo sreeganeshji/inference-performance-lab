@@ -50,4 +50,3 @@ uv run --locked --no-sync vllm bench serve \
     --result-dir "$artifact_dir" \
     --result-filename "${result_stem}.json" \
     2>&1 | tee "$output"
-    

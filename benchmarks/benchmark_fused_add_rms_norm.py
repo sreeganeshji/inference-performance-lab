@@ -7,21 +7,12 @@ from inference_performance_lab.kernels.extension import (
     fused_add_rms_norm as custom_fused_add_rms_norm,
 )
 
-
-Implementation = Callable[
-    [torch.Tensor, torch.Tensor, torch.Tensor, float],
-    None,
-]
+Implementation = Callable[[torch.Tensor, torch.Tensor, torch.Tensor, float], None]
 
 HIDDEN_SIZE = 3584
 EPSILON = 1e-6
 TOKEN_COUNTS = [1, 8, 128, 2048]
-ITERATIONS = {
-    1: 2000,
-    8: 1000,
-    128: 300,
-    2048: 50,
-}
+ITERATIONS = {1: 2000, 8: 1000, 128: 300, 2048: 50}
 WARMUP_ITERATIONS = 25
 
 # Minimum semantic traffic per element:
@@ -29,28 +20,12 @@ WARMUP_ITERATIONS = 25
 MINIMUM_BYTES_PER_ELEMENT = 10
 
 
-def benchmark(
-    implementation: Implementation,
-    num_tokens: int,
-) -> tuple[float, float]:
+def benchmark(implementation: Implementation, num_tokens: int) -> tuple[float, float]:
     torch.manual_seed(0)
 
-    x = torch.randn(
-        num_tokens,
-        HIDDEN_SIZE,
-        device="cuda",
-        dtype=torch.bfloat16,
-    )
+    x = torch.randn(num_tokens, HIDDEN_SIZE, device="cuda", dtype=torch.bfloat16)
     residual = torch.randn_like(x)
-    weight = (
-        torch.randn(
-            HIDDEN_SIZE,
-            device="cuda",
-            dtype=torch.bfloat16,
-        )
-        * 0.1
-        + 1.0
-    )
+    weight = torch.randn(HIDDEN_SIZE, device="cuda", dtype=torch.bfloat16) * 0.1 + 1.0
 
     for _ in range(WARMUP_ITERATIONS):
         implementation(x, residual, weight, EPSILON)
@@ -72,40 +47,23 @@ def benchmark(
     milliseconds = start.elapsed_time(end) / iterations
     microseconds = milliseconds * 1000.0
 
-    minimum_bytes = (
-        num_tokens
-        * HIDDEN_SIZE
-        * MINIMUM_BYTES_PER_ELEMENT
-    )
-    effective_gbps = (
-        minimum_bytes
-        / (microseconds * 1e-6)
-        / 1e9
-    )
+    minimum_bytes = num_tokens * HIDDEN_SIZE * MINIMUM_BYTES_PER_ELEMENT
+    effective_gbps = minimum_bytes / (microseconds * 1e-6) / 1e9
 
     return microseconds, effective_gbps
 
 
 def main() -> None:
-    implementations = {
-        "vLLM": vllm_ops.fused_add_rms_norm,
-        "custom": custom_fused_add_rms_norm,
-    }
+    implementations = {"vLLM": vllm_ops.fused_add_rms_norm, "custom": custom_fused_add_rms_norm}
     results: dict[str, dict[int, tuple[float, float]]] = {}
 
     for name, implementation in implementations.items():
         results[name] = {}
 
         for num_tokens in TOKEN_COUNTS:
-            results[name][num_tokens] = benchmark(
-                implementation,
-                num_tokens,
-            )
+            results[name][num_tokens] = benchmark(implementation, num_tokens)
 
-    print(
-        "| Tokens | vLLM (us) | Custom (us) | "
-        "Speedup | vLLM GB/s | Custom GB/s |"
-    )
+    print("| Tokens | vLLM (us) | Custom (us) | Speedup | vLLM GB/s | Custom GB/s |")
     print("|---:|---:|---:|---:|---:|---:|")
 
     for num_tokens in TOKEN_COUNTS:
