@@ -38,25 +38,29 @@ The specialized CUDA kernel uses:
 - FP32 sum-of-squares accumulation
 - Warp-shuffle and shared-memory block reduction
 - A specialization for hidden size 3584
-- Scalar/generic fallback for unsupported layouts
+- Scalar cached fallback for misaligned contiguous tensors; generic fallback for other hidden sizes
 - In-place output and residual updates matching vLLM semantics
 
-Correctness was tested against a PyTorch reference and vLLM across token counts
-1, 8, 128, and 2048, including aligned and deliberately misaligned tensors.
+The current suite compares both custom and vLLM implementations with a PyTorch
+reference across token counts 1, 8, 128, and 2048. Separate tests compare
+deliberately misaligned custom inputs with that reference. Noncontiguous
+tensors and unsupported dtypes are rejected by the host wrapper.
 
 ## Standalone kernel benchmark
 
-Representative repeated measurements showed:
+Medians across all five packed-cache benchmark runs are:
 
-| Tokens | Approximate custom speedup over vLLM |
+| Tokens | Median custom speedup over vLLM |
 |---:|---:|
-| 1 | 1.14x |
-| 8 | 1.16x |
-| 128 | 1.15x |
-| 2048 | 1.02x |
+| 1 | 1.143x |
+| 8 | 1.165x |
+| 128 | 1.153x |
+| 2048 | 1.022x |
 
-One anomalous vLLM measurement at eight tokens was excluded from this summary;
-the raw repeated measurements remain available in `results/kernels/`.
+The [generated summary](generated-summary.md) includes the minimum and maximum
+of every recorded run, including the anomalous eight-token result. These
+medians use the three-decimal ratios saved in the reports. Earlier wording
+summarized the small/medium gains as approximately 1.14–1.16x.
 
 ## vLLM integration
 
@@ -84,14 +88,6 @@ throughput is better; negative latency is better.
 
 The differences are small and mixed. They should not be interpreted as a
 meaningful end-to-end serving speedup.
-
-A matched `vllm_c` trace contained the same 6,104 RMSNorm launches but used
-50.373 ms of total GPU time, averaging 8.252 us with a median of 3.456 us.
-The custom implementation therefore consumed 2.72% more aggregate RMSNorm GPU
-time in this serving workload, despite outperforming vLLM in the standalone
-microbenchmark. This indicates that the isolated token-count benchmark did not
-fully represent the dynamic shapes or execution conditions encountered during
-serving.
 
 ## Production-path profiling evidence
 
@@ -142,6 +138,10 @@ claim. It is a reproducible demonstration of:
 - Each serving configuration has three repetitions.
 - Provider runs were not interleaved, so temporal system effects may remain.
 - The custom specialization only targets BF16 hidden size 3584.
+- CUDA-event microbenchmarks repeatedly enqueue calls from Python using the
+  same buffers. Dispatch gaps, cache reuse, fixed provider order, and the
+  repeated in-place residual updates limit interpretation of these timings.
+- These A100 measurements precede the Stable LibTorch ABI migration. Current
+  source validation on the 3080 Ti does not revalidate the A100 speedups.
 - The trace reports kernel-time share for one controlled workload, not every
   possible serving workload.
-  

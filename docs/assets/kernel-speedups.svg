@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="600" viewBox="0 0 1120 600" role="img">
+  <style>text { font-family: Inter, Segoe UI, Arial, sans-serif; }</style>
+  <rect width="1120" height="600" fill="#ffffff" rx="12"/>
+  <text x="85.0" y="42.0" font-size="25" font-weight="700" fill="#172033" text-anchor="start">Standalone CUDA kernel speedup vs vLLM</text>
+  <text x="85.0" y="70.0" font-size="14" font-weight="400" fill="#64748b" text-anchor="start">Median across five A100 runs; min–max bars retain every measurement, including outliers</text>
+  <line x1="85" y1="520.0" x2="1085" y2="520.0" stroke="#dbe3ef"/>
+  <text x="73.0" y="525.0" font-size="14" font-weight="400" fill="#64748b" text-anchor="end">0.8×</text>
+  <line x1="85" y1="446.4" x2="1085" y2="446.4" stroke="#dbe3ef"/>
+  <text x="73.0" y="451.4" font-size="14" font-weight="400" fill="#64748b" text-anchor="end">1.0×</text>
+  <line x1="85" y1="372.7" x2="1085" y2="372.7" stroke="#dbe3ef"/>
+  <text x="73.0" y="377.7" font-size="14" font-weight="400" fill="#64748b" text-anchor="end">1.2×</text>
+  <line x1="85" y1="299.1" x2="1085" y2="299.1" stroke="#dbe3ef"/>
+  <text x="73.0" y="304.1" font-size="14" font-weight="400" fill="#64748b" text-anchor="end">1.4×</text>
+  <line x1="85" y1="225.5" x2="1085" y2="225.5" stroke="#dbe3ef"/>
+  <text x="73.0" y="230.5" font-size="14" font-weight="400" fill="#64748b" text-anchor="end">1.6×</text>
+  <line x1="85" y1="151.8" x2="1085" y2="151.8" stroke="#dbe3ef"/>
+  <text x="73.0" y="156.8" font-size="14" font-weight="400" fill="#64748b" text-anchor="end">1.8×</text>
+  <line x1="85" y1="446.4" x2="1085" y2="446.4" stroke="#64748b" stroke-width="1.5" stroke-dasharray="7 6"/>
+  <text x="113.0" y="558.0" font-size="14" font-weight="400" fill="#64748b" text-anchor="middle">1</text>
+  <text x="427.7" y="558.0" font-size="14" font-weight="400" fill="#64748b" text-anchor="middle">8</text>
+  <text x="742.3" y="558.0" font-size="14" font-weight="400" fill="#64748b" text-anchor="middle">128</text>
+  <text x="1057.0" y="558.0" font-size="14" font-weight="400" fill="#64748b" text-anchor="middle">2048</text>
+  <text x="560.0" y="588.0" font-size="14" font-weight="400" fill="#64748b" text-anchor="middle">Token rows</text>
+  <text x="23.0" y="317.5" font-size="14" font-weight="400" fill="#64748b" text-anchor="middle" transform="rotate(-90 23 317.5)">Speedup (higher is better)</text>
+  <line x1="104.0" y1="386.7" x2="104.0" y2="414.3" stroke="#2563eb" stroke-width="2"/>
+  <line x1="99.0" y1="386.7" x2="109.0" y2="386.7" stroke="#2563eb" stroke-width="2"/>
+  <line x1="99.0" y1="414.3" x2="109.0" y2="414.3" stroke="#2563eb" stroke-width="2"/>
+  <circle cx="104.0" cy="393.7" r="5" fill="#2563eb" stroke="white" stroke-width="2"/>
+  <text x="104.0" y="380.7" font-size="12" font-weight="600" fill="#2563eb" text-anchor="middle">1.14×</text>
+  <line x1="418.7" y1="150.7" x2="418.7" y2="394.1" stroke="#2563eb" stroke-width="2"/>
+  <line x1="413.7" y1="150.7" x2="423.7" y2="150.7" stroke="#2563eb" stroke-width="2"/>
+  <line x1="413.7" y1="394.1" x2="423.7" y2="394.1" stroke="#2563eb" stroke-width="2"/>
+  <circle cx="418.7" cy="385.6" r="5" fill="#2563eb" stroke="white" stroke-width="2"/>
+  <text x="418.7" y="372.6" font-size="12" font-weight="600" fill="#2563eb" text-anchor="middle">1.17×</text>
+  <line x1="733.3" y1="374.6" x2="733.3" y2="438.3" stroke="#2563eb" stroke-width="2"/>
+  <line x1="728.3" y1="374.6" x2="738.3" y2="374.6" stroke="#2563eb" stroke-width="2"/>
+  <line x1="728.3" y1="438.3" x2="738.3" y2="438.3" stroke="#2563eb" stroke-width="2"/>
+  <circle cx="733.3" cy="390.0" r="5" fill="#2563eb" stroke="white" stroke-width="2"/>
+  <text x="733.3" y="377.0" font-size="12" font-weight="600" fill="#2563eb" text-anchor="middle">1.15×</text>
+  <line x1="1048.0" y1="435.7" x2="1048.0" y2="439.7" stroke="#2563eb" stroke-width="2"/>
+  <line x1="1043.0" y1="435.7" x2="1053.0" y2="435.7" stroke="#2563eb" stroke-width="2"/>
+  <line x1="1043.0" y1="439.7" x2="1053.0" y2="439.7" stroke="#2563eb" stroke-width="2"/>
+  <circle cx="1048.0" cy="438.3" r="5" fill="#2563eb" stroke="white" stroke-width="2"/>
+  <text x="1048.0" y="425.3" font-size="12" font-weight="600" fill="#2563eb" text-anchor="middle">1.02×</text>
+  <polyline points="104.0,393.7 418.7,385.6 733.3,390.0 1048.0,438.3" fill="none" stroke="#2563eb" stroke-width="3"/>
+  <line x1="122.0" y1="193.1" x2="122.0" y2="212.6" stroke="#ea580c" stroke-width="2"/>
+  <line x1="117.0" y1="193.1" x2="127.0" y2="193.1" stroke="#ea580c" stroke-width="2"/>
+  <line x1="117.0" y1="212.6" x2="127.0" y2="212.6" stroke="#ea580c" stroke-width="2"/>
+  <circle cx="122.0" cy="202.3" r="5" fill="#ea580c" stroke="white" stroke-width="2"/>
+  <text x="122.0" y="189.3" font-size="12" font-weight="600" fill="#ea580c" text-anchor="middle">1.66×</text>
+  <line x1="436.7" y1="161.4" x2="436.7" y2="176.5" stroke="#ea580c" stroke-width="2"/>
+  <line x1="431.7" y1="161.4" x2="441.7" y2="161.4" stroke="#ea580c" stroke-width="2"/>
+  <line x1="431.7" y1="176.5" x2="441.7" y2="176.5" stroke="#ea580c" stroke-width="2"/>
+  <circle cx="436.7" cy="171.3" r="5" fill="#ea580c" stroke="white" stroke-width="2"/>
+  <text x="436.7" y="158.3" font-size="12" font-weight="600" fill="#ea580c" text-anchor="middle">1.75×</text>
+  <line x1="751.3" y1="258.2" x2="751.3" y2="263.0" stroke="#ea580c" stroke-width="2"/>
+  <line x1="746.3" y1="258.2" x2="756.3" y2="258.2" stroke="#ea580c" stroke-width="2"/>
+  <line x1="746.3" y1="263.0" x2="756.3" y2="263.0" stroke="#ea580c" stroke-width="2"/>
+  <circle cx="751.3" cy="261.9" r="5" fill="#ea580c" stroke="white" stroke-width="2"/>
+  <text x="751.3" y="248.9" font-size="12" font-weight="600" fill="#ea580c" text-anchor="middle">1.50×</text>
+  <line x1="1066.0" y1="443.8" x2="1066.0" y2="445.6" stroke="#ea580c" stroke-width="2"/>
+  <line x1="1061.0" y1="443.8" x2="1071.0" y2="443.8" stroke="#ea580c" stroke-width="2"/>
+  <line x1="1061.0" y1="445.6" x2="1071.0" y2="445.6" stroke="#ea580c" stroke-width="2"/>
+  <circle cx="1066.0" cy="444.2" r="5" fill="#ea580c" stroke="white" stroke-width="2"/>
+  <text x="1066.0" y="468.2" font-size="12" font-weight="600" fill="#ea580c" text-anchor="middle">1.01×</text>
+  <polyline points="122.0,202.3 436.7,171.3 751.3,261.9 1066.0,444.2" fill="none" stroke="#ea580c" stroke-width="3"/>
+  <line x1="720" y1="43" x2="746" y2="43" stroke="#2563eb" stroke-width="4"/>
+  <text x="754.0" y="48.0" font-size="13" font-weight="600" fill="#172033" text-anchor="start">Fused RMSNorm</text>
+  <line x1="925" y1="43" x2="951" y2="43" stroke="#ea580c" stroke-width="4"/>
+  <text x="959.0" y="48.0" font-size="13" font-weight="600" fill="#172033" text-anchor="start">Packed SiLU</text>
+</svg>

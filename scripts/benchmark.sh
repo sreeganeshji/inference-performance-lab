@@ -23,12 +23,14 @@ artifact_dir="${RESULT_DIR:-artifacts/raw/$protocol}"
 mkdir -p "$artifact_dir"
 
 timestamp="$(date -u +%Y%m%dT%H%M%S%3NZ)"
-result_stem="qwen-a100-${protocol}-i${input_len}-o${output_len}-c${concurrency}-${timestamp}"
+# Protocol paths group results into directories; filenames must remain flat.
+protocol_label="${protocol//\//-}"
+result_stem="qwen-a100-${protocol_label}-i${input_len}-o${output_len}-c${concurrency}-${timestamp}"
 output="$artifact_dir/${result_stem}.txt"
 
 uv run --locked --no-sync vllm bench serve \
     --backend openai \
-    --base-url http://127.0.0.1:8000 \
+    --base-url "http://127.0.0.1:${VLLM_PORT:-8000}" \
     --endpoint /v1/completions \
     --model qwen2.5-7b-instruct \
     --tokenizer "$snapshot" \

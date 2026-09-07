@@ -1,12 +1,29 @@
 [project]
 name = "inference-performance-lab"
 version = "0.1.0"
-description = "Add your description here"
+description = "Reproducible CUDA kernel optimization and vLLM inference profiling on NVIDIA GPUs"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = [
-    "vllm==0.27.1",
+license = "MIT"
+keywords = [
+    "cuda",
+    "gpu-performance",
+    "llm-inference",
+    "pytorch",
+    "vllm",
 ]
+dependencies = [
+    "ninja==1.13.0",
+    "numpy==2.3.5",
+    "torch==2.13.0",
+]
+
+[project.optional-dependencies]
+serving = ["vllm==0.27.1"]
+
+[project.urls]
+Repository = "https://github.com/sreeganeshji/inference-performance-lab"
+Issues = "https://github.com/sreeganeshji/inference-performance-lab/issues"
 
 [build-system]
 requires = ["uv_build>=0.12.5,<0.13.0"]
@@ -14,7 +31,9 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
+    "clang-format==23.1.0",
     "pytest>=9.1.1",
+    "ruff==0.16.6",
 ]
 
 [project.entry-points."vllm.general_plugins"]
@@ -28,3 +47,9 @@ skip-magic-trailing-comma = true
 
 [tool.ruff.lint.isort]
 split-on-trailing-comma = false
+
+[tool.pytest.ini_options]
+markers = [
+    "gpu: requires an NVIDIA GPU with CUDA support",
+    "vllm: requires the optional vLLM serving environment",
+]

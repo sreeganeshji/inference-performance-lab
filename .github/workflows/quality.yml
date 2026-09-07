@@ -1,0 +1,53 @@
+name: Quality
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  static-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - name: Install quality tools
+        run: uv sync --locked --only-group dev
+
+      - name: Check locked dependencies
+        run: uv lock --check
+
+      - name: Check Python formatting and lint
+        run: |
+          uv run --no-sync ruff format --check .
+          uv run --no-sync ruff check .
+
+      - name: Check CUDA and C++ formatting
+        run: >-
+          uv run --no-sync clang-format --dry-run --Werror
+          csrc/torch_ops.cpp
+          csrc/fused_add_rms_norm_kernel.cu
+          csrc/silu_and_mul_kernel.cu
+
+      - name: Check shell syntax
+        run: |
+          for script in scripts/*.sh; do
+            bash -n "$script"
+          done
+
+      - name: Regenerate documentation evidence
+        run: |
+          uv run --no-sync python scripts/generate_readme_assets.py --check
+          git diff --exit-code -- docs/assets results/generated-summary.md
+
+      - name: Test evidence validation and serving commands
+        run: uv run --no-sync pytest tests/test_readme_assets.py tests/test_serving_scripts.py
+
+      - name: Check whitespace
+        run: git diff --check
