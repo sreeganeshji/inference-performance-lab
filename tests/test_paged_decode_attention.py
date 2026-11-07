@@ -1,3 +1,4 @@
+import functools
 import math
 import subprocess
 import sys
@@ -6,7 +7,14 @@ from pathlib import Path
 import pytest
 import torch
 
-from inference_performance_lab.kernels.extension import DECODE_VARIANTS, paged_decode_attention
+from inference_performance_lab.kernels.extension import (
+    DECODE_VARIANTS,
+    DEFAULT_SPLIT_MODEL,
+    SPLIT_MODELS,
+    modeled_split_cost,
+    paged_decode_attention,
+    split_model_for,
+)
 from inference_performance_lab.kernels.reference import paged_decode_attention_reference
 
 HEAD_DIM = 128
@@ -185,6 +193,37 @@ def test_stale_cache_slots_are_ignored(variant: str, num_splits: int | None) -> 
         variant=variant,
         num_splits=num_splits,
     )
+
+
+def test_split_model_matches_gpu_name() -> None:
+    assert split_model_for("NVIDIA A100-SXM4-40GB") is SPLIT_MODELS["A100"]
+    assert split_model_for("NVIDIA A100 80GB PCIe") is SPLIT_MODELS["A100"]
+    assert split_model_for("NVIDIA GeForce RTX 3080 Ti") is DEFAULT_SPLIT_MODEL
+
+
+@pytest.mark.parametrize(
+    ("num_seqs", "context_len", "expected"),
+    # The fastest measured split counts in the A100 sweep, which its fit reproduces.
+    [(1, 16384, 40), (2, 16384, 24), (8, 16384, 6), (64, 4096, 1)],
+)
+def test_a100_split_model_picks_measured_best(
+    num_seqs: int, context_len: int, expected: int
+) -> None:
+    measured = [1, 2, 3, 4, 5, 6, 8, 10, 12, 16, 20, 24, 32, 40, 48, 64]
+    cost = functools.partial(
+        modeled_split_cost,
+        num_seqs=num_seqs,
+        num_kv_heads=4,
+        kv_blocks=context_len // 16,
+        block_size=16,
+        queries_per_cta=7,
+        capacity=3 * 108,  # three resident tensor-core blocks on each of the A100's 108 SMs
+        sm_count=108,
+        tensor_cores=True,
+        model=SPLIT_MODELS["A100"],
+    )
+
+    assert min(measured, key=cost) == expected
 
 
 @pytest.mark.gpu

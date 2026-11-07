@@ -34,7 +34,7 @@ BLOCK_SIZE = 16  # the KV block size benchmark_paged_decode_attention.py uses
 GRID = {
     "saturating_blocks_per_sm": [x / 10 for x in range(4, 31)],
     "block_overhead_bytes": [0] + [(8 << 10) << i for i in range(8)],  # 0, 8 KiB .. 1 MiB
-    "partial_traffic_weight": [0.5, 1, 2, 3, 4, 6, 8, 12],
+    "partial_traffic_weight": [0.5, 1, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48],
     "combine_overhead_bytes": [0, 0.5e6, 1e6, 2.5e6, 4e6, 6e6, 1e7],
 }
 

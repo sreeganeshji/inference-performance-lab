@@ -164,6 +164,35 @@ def run_cell(
     return json.loads((result_dir / f"{stem}.json").read_text())
 
 
+def record(result: dict, backend: str, round_index: int, cell: tuple[int, int, int]) -> dict:
+    # vllm bench serve's result has its own "backend" (the client API, "openai"); ours wins.
+    return {
+        **result,
+        "client_backend": result.get("backend"),
+        "backend": backend,
+        "round": round_index,
+        "cell": cell,
+    }
+
+
+def load_records(result_dir: Path, exclude: list[str]) -> list[dict]:
+    """Rebuild the records from the per-run JSON files run_cell saved (BACKEND-rN-iI-oO-cC.json)."""
+
+    records = []
+
+    for path in sorted(result_dir.glob("*-r*-i*-o*-c*.json")):
+        backend, round_part, *cell_parts = path.stem.split("-")
+
+        if path.stem in exclude:
+            print(f"excluded {path.stem}", flush=True)
+            continue
+
+        cell = tuple(int(part[1:]) for part in cell_parts)
+        records.append(record(json.loads(path.read_text()), backend, int(round_part[1:]), cell))
+
+    return records
+
+
 def summarize(records: list[dict], cells: list[tuple[int, int, int]]) -> str:
     lines = [
         (
@@ -210,9 +239,28 @@ def main() -> None:
     parser.add_argument("--min-prompts", type=int, default=16)
     parser.add_argument("--port", type=int, default=8000)
     parser.add_argument("--result-dir", type=Path)
+    parser.add_argument(
+        "--summarize", action="store_true", help="rebuild the summary of --result-dir; run nothing"
+    )
+    parser.add_argument(
+        "--exclude", nargs="*", default=[], help="run stems to leave out of the summary"
+    )
     args = parser.parse_args()
 
     cells = [tuple(int(part) for part in cell.split(":")) for cell in args.cells]
+
+    if args.summarize:
+        records = load_records(args.result_dir, args.exclude)
+        summary = summarize(records, cells)
+
+        if args.exclude:
+            summary += "\n\nLeft out: " + ", ".join(args.exclude)
+
+        (args.result_dir / "summary.md").write_text(summary + "\n")
+        (args.result_dir / "records.json").write_text(json.dumps(records, indent=1))
+        print(summary)
+        return
+
     stamp = dt.datetime.now(dt.UTC).strftime("%Y%m%dT%H%M%SZ")
     result_dir = args.result_dir or Path("results/data/attention/serving") / stamp
     result_dir.mkdir(parents=True, exist_ok=True)
@@ -233,9 +281,7 @@ def main() -> None:
                 for cell in cells:
                     stem = f"{backend}-r{round_index}-i{cell[0]}-o{cell[1]}-c{cell[2]}"
                     result = run_cell(cell, args, result_dir, stem)
-                    records.append(
-                        {"backend": backend, "round": round_index, "cell": cell, **result}
-                    )
+                    records.append(record(result, backend, round_index, cell))
                     print(
                         f"  {stem}: {result['output_throughput']:.1f} tok/s, "
                         f"TPOT p50 {result['median_tpot_ms']:.2f} ms",

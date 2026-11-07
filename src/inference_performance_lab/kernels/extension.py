@@ -107,19 +107,32 @@ DEFAULT_SPLIT_MODEL = SplitModel(
     partial_traffic_weight=3,
     combine_overhead_bytes=2.5e6,
 )
-# Per-GPU fits, keyed by a substring of the device name.
-SPLIT_MODELS: dict[str, SplitModel] = {}
+# Per-GPU fits, keyed by a substring of the device name. The A100 moves more bytes per SM than the
+# 3080 Ti, so by Little's law it needs more blocks in flight (1.7 per SM against 0.8) before DRAM
+# saturates. Fitted by benchmarks/fit_split_model.py to a 21-point sweep on an A100-SXM4-40GB
+# (results/data/attention/a100-sxm4-40gb-split-fit-wide-20261107.md): mean regret 0.64% against
+# the fastest measured split count, worst 2.3%, where the 3080 Ti constants gave 5.2% and 12.8%.
+SPLIT_MODELS: dict[str, SplitModel] = {
+    "A100": SplitModel(
+        saturating_blocks_per_sm=1.7,
+        block_overhead_bytes=0,
+        partial_traffic_weight=24,
+        combine_overhead_bytes=0,
+    )
+}
+
+
+def split_model_for(device_name: str) -> SplitModel:
+    for key, model in SPLIT_MODELS.items():
+        if key in device_name:
+            return model
+
+    return DEFAULT_SPLIT_MODEL
 
 
 @cache
 def split_model(device_index: int) -> SplitModel:
-    name = torch.cuda.get_device_properties(device_index).name
-
-    for key, model in SPLIT_MODELS.items():
-        if key in name:
-            return model
-
-    return DEFAULT_SPLIT_MODEL
+    return split_model_for(torch.cuda.get_device_properties(device_index).name)
 
 
 @cache

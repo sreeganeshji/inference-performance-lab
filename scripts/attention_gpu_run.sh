@@ -165,12 +165,13 @@ profile() {
     local dir
     dir="$out_dir/serving-profile/$(gpu_tag)-$stamp"
 
-    # A long-context decode cell, where attention matters most, and a many-sequence cell, where
-    # the scheduler does the most work per step.
+    # The serving A/B's largest gap (4K prompts at concurrency 64, where about half the steps mix a
+    # prefill chunk with decodes) and a many-sequence cell, where the scheduler does the most work
+    # per step. Two prompts per slot keep the traces short.
     for backend in FLASH_ATTN CUSTOM; do
-        for cell in 4096:256:32 1024:128:128; do
+        for cell in 4096:256:64 1024:128:128; do
             "$python" benchmarks/profile_serving_steps.py --backend "$backend" --cell "$cell" \
-                --result-dir "$dir/$backend-${cell//:/-}"
+                --prompts-per-slot 2 --result-dir "$dir/$backend-${cell//:/-}"
         done
     done
 }
