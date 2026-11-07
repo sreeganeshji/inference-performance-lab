@@ -19,21 +19,58 @@ python="$venv/bin/python"
 export PATH="$venv/bin:$PATH"
 export PYTHONDONTWRITEBYTECODE=1
 
+# torch's cu130 wheels JIT-build the extension with a CUDA 13 nvcc. Prefer a 13.0 toolkit when one
+# sits next to an older system CUDA (Lambda Stack ships its own). Drivers older than R580 run
+# CUDA 13 through the forward-compatibility libraries, which data-center GPUs support; setup
+# installs both when they are missing.
+use_cuda13() {
+    if [[ -x /usr/local/cuda-13.0/bin/nvcc ]]; then
+        export CUDA_HOME=/usr/local/cuda-13.0
+        export PATH="$CUDA_HOME/bin:$PATH"
+    fi
+
+    if [[ -d /usr/local/cuda-13.0/compat ]]; then
+        export LD_LIBRARY_PATH="/usr/local/cuda-13.0/compat${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+    fi
+}
+use_cuda13
+
 gpu_tag="$(nvidia-smi --query-gpu=name,memory.total --format=csv,noheader,nounits | head -1 |
     awk -F', ' '{name=tolower($1); gsub(/nvidia |geforce /, "", name); gsub(/[^a-z0-9]+/, "-", name); sub(/-[0-9]+gb$/, "", name);
                  printf "%s-%dgb", name, ($2 + 512) / 1024}')"
 stamp="$(date -u +%Y%m%d)"
 out_dir="results/data/attention"
 
+cuda_toolkit() {
+    if ! nvcc --version 2>/dev/null | grep -q "release 13\."; then
+        . /etc/os-release
+        local repo="https://developer.download.nvidia.com/compute/cuda/repos/ubuntu${VERSION_ID//./}/x86_64"
+        curl -fsSLo /tmp/cuda-keyring.deb "$repo/cuda-keyring_1.1-1_all.deb"
+        sudo dpkg -i /tmp/cuda-keyring.deb
+        sudo apt-get update
+        sudo apt-get install -y cuda-toolkit-13-0
+    fi
+
+    local driver_major
+    driver_major="$(nvidia-smi --query-gpu=driver_version --format=csv,noheader | head -1 | cut -d. -f1)"
+
+    if ((driver_major < 580)); then
+        sudo apt-get install -y cuda-compat-13-0
+    fi
+
+    use_cuda13
+}
+
 setup() {
+    cuda_toolkit
     command -v uv >/dev/null || curl -LsSf https://astral.sh/uv/install.sh | sh
     export PATH="$HOME/.local/bin:$PATH"
     uv venv --python 3.12 "$venv"
     uv pip install --python "$python" vllm==0.33.0 flashinfer-python==0.7.2.post1 pytest ninja numpy
     uv pip install --python "$python" --no-deps -e .
     nvidia-smi
-    nvcc --version || echo "warning: nvcc not found; the JIT extension build needs a CUDA 13 toolkit"
-    "$python" -c "import torch, vllm; print(torch.__version__, torch.version.cuda, vllm.__version__)"
+    nvcc --version
+    "$python" -c "import torch, vllm; print(torch.__version__, torch.version.cuda, vllm.__version__, torch.cuda.get_device_name())"
 }
 
 run_tests() {
