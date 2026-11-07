@@ -5,6 +5,8 @@
 #   scripts/attention_gpu_run.sh test      correctness tests on this GPU
 #   scripts/attention_gpu_run.sh kernels   CUDA-graph-timed kernel grid, plus a split-count sweep
 #   scripts/attention_gpu_run.sh check     greedy FLASH_ATTN vs CUSTOM on Qwen2.5-7B-Instruct (~15 GB download)
+#   scripts/attention_gpu_run.sh controls  the same check between stock backends, for scale
+#   scripts/attention_gpu_run.sh split-fit wide split sweep and a fit of the split heuristic
 #   scripts/attention_gpu_run.sh serving   serving A/B, FLASH_ATTN vs CUSTOM (about an hour)
 #   scripts/attention_gpu_run.sh profile   Nsight Systems traces: attention share, scheduler time
 #   scripts/attention_gpu_run.sh all       every step in order
@@ -36,7 +38,8 @@ use_cuda13() {
 }
 use_cuda13
 
-stamp="$(date -u +%Y%m%d)"
+# IPL_RUN_LABEL tells apart several runs on one day (the benchmark appends to its JSONL output).
+stamp="$(date -u +%Y%m%d)${IPL_RUN_LABEL:+-$IPL_RUN_LABEL}"
 out_dir="results/data/attention"
 
 # A function rather than a variable: on a bare image nvidia-smi exists only after setup.
@@ -126,6 +129,32 @@ check() {
         tee "$out_dir/$(gpu_tag)-vllm-check-$stamp.txt"
 }
 
+# The divergence two correct BF16 backends show on the same check, to read check's result against.
+controls() {
+    mkdir -p "$out_dir"
+
+    for candidate in FLASHINFER TRITON_ATTN; do
+        "$python" benchmarks/vllm_attention_check.py --model Qwen/Qwen2.5-7B-Instruct \
+            --revision a09a35458c702b33eeacc393d103063234e8bc28 --gpu-memory-utilization 0.85 \
+            --backends FLASH_ATTN "$candidate" |
+            tee "$out_dir/$(gpu_tag)-vllm-check-control-$candidate-$stamp.txt"
+    done
+}
+
+# A wide split sweep, then a fit of the split heuristic's constants to it.
+split_fit() {
+    local prefix
+    prefix="$out_dir/$(gpu_tag)"
+    mkdir -p "$out_dir"
+    "$python" benchmarks/benchmark_paged_decode_attention.py \
+        --batch-sizes 1 2 4 8 16 32 64 --context-lens 1024 4096 16384 --trials 5 \
+        --implementations lab-gqa-split-tc \
+        --split-sweep-tc 1 2 3 4 5 6 8 10 12 16 20 24 32 40 48 64 \
+        --output "$prefix-split-fit-sweep-$stamp.jsonl" > "$prefix-split-fit-sweep-$stamp.md"
+    "$python" benchmarks/fit_split_model.py "$prefix-split-fit-sweep-$stamp.jsonl" \
+        --output "$prefix-split-fit-$stamp.md"
+}
+
 serving() {
     "$python" benchmarks/serving_attention_ab.py --rounds 3 \
         --cells 4096:256:1 4096:256:8 4096:256:32 4096:256:64 16384:256:8 16384:256:16 \
@@ -151,8 +180,10 @@ case "${1:-all}" in
     test) run_tests ;;
     kernels) kernels ;;
     check) check ;;
+    controls) controls ;;
+    split-fit) split_fit ;;
     serving) serving ;;
     profile) profile ;;
-    all) setup && run_tests && kernels && check && serving && profile ;;
-    *) echo "usage: $0 {setup|test|kernels|check|serving|profile|all}" >&2; exit 2 ;;
+    all) setup && run_tests && kernels && check && controls && serving && profile ;;
+    *) echo "usage: $0 {setup|test|kernels|check|controls|split-fit|serving|profile|all}" >&2; exit 2 ;;
 esac

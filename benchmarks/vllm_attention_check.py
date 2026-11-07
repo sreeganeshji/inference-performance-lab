@@ -103,6 +103,14 @@ def main() -> None:
     )
     parser.add_argument("--model", help="a real checkpoint; default: dummy Qwen2.5-7B architecture")
     parser.add_argument("--revision", help="the checkpoint's Hugging Face revision")
+    parser.add_argument(
+        "--backends",
+        nargs=2,
+        default=["FLASH_ATTN", "CUSTOM"],
+        metavar=("REFERENCE", "CANDIDATE"),
+        help="compare two backends; two stock ones give the divergence to expect between "
+        "correct BF16 implementations",
+    )
     parser.add_argument("--enforce-eager", action="store_true")
     parser.add_argument("--max-tokens", type=int, default=48)
     parser.add_argument("--gpu-memory-utilization", type=float, default=0.6)
@@ -120,7 +128,7 @@ def main() -> None:
     model = str(dummy_model_dir()) if dummy else args.model
     results = {}
 
-    for backend in ("FLASH_ATTN", "CUSTOM"):
+    for backend in args.backends:
         result_path = Path.home() / ".cache" / "ipl-models" / f"check-{backend}.json"
         command = [
             sys.executable,
@@ -161,10 +169,12 @@ def main() -> None:
 
         results[backend] = json.loads(result_path.read_text())
 
-    reference, custom = results["FLASH_ATTN"], results["CUSTOM"]
+    reference, custom = (results[backend] for backend in args.backends)
     matching_tokens = total_tokens = 0
     first_divergence = []
     max_logprob_delta = 0.0
+
+    print(f"{args.backends[1]} against {args.backends[0]}:")
 
     for ref, lab in zip(reference, custom):
         prefix = 0

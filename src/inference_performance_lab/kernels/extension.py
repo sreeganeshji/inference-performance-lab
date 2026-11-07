@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import functools
 import math
+from dataclasses import dataclass
 from functools import cache
 from pathlib import Path
 
@@ -75,18 +77,49 @@ def silu_and_mul_packed(x: torch.Tensor) -> torch.Tensor:
 
 DECODE_VARIANTS = ("per_query_head", "gqa", "gqa_split", "gqa_split_tc")
 
-# Split-KV heuristic constants, fitted to split sweeps on the RTX 3080 Ti (see choose_num_splits).
-# Each split gets at least MIN_KV_BLOCKS_PER_SPLIT KV blocks. The combine kernel's fixed cost is
-# COMBINE_OVERHEAD_BYTES of equivalent traffic (about 3 us at 850 GB/s); a block's prologue and
-# epilogue cost BLOCK_OVERHEAD_BYTES of its slot's streaming time; split outputs cost
-# PARTIAL_TRAFFIC_WEIGHT times their raw bytes, because the combine pass is far from streaming speed.
+# Each split gets at least MIN_KV_BLOCKS_PER_SPLIT KV blocks.
 MIN_KV_BLOCKS_PER_SPLIT = 4
 MAX_SPLITS = 64
-COMBINE_OVERHEAD_BYTES = 2.5e6
-BLOCK_OVERHEAD_BYTES = 16 * 1024
-PARTIAL_TRAFFIC_WEIGHT = 3
-TC_SATURATING_BLOCKS_PER_SM = 0.8
 KV_BYTES_PER_TOKEN = 2 * 128 * 2  # one K row and one V row of BF16, per KV head
+
+
+@dataclass(frozen=True)
+class SplitModel:
+    """Constants of the split-KV cost model (see choose_num_splits), fitted per GPU to split sweeps.
+
+    The tensor-core kernel saturates DRAM once saturating_blocks_per_sm blocks per SM run at once.
+    A block's prologue and epilogue cost block_overhead_bytes of its slot's streaming time; split
+    outputs cost partial_traffic_weight times their raw bytes, because the combine pass is far from
+    streaming speed; the combine kernel's fixed cost is combine_overhead_bytes of equivalent
+    traffic.
+    """
+
+    saturating_blocks_per_sm: float
+    block_overhead_bytes: float
+    partial_traffic_weight: float
+    combine_overhead_bytes: float
+
+
+# Fitted to split sweeps on the RTX 3080 Ti (results/data/attention/); the default for other GPUs.
+DEFAULT_SPLIT_MODEL = SplitModel(
+    saturating_blocks_per_sm=0.8,
+    block_overhead_bytes=16 * 1024,
+    partial_traffic_weight=3,
+    combine_overhead_bytes=2.5e6,
+)
+# Per-GPU fits, keyed by a substring of the device name.
+SPLIT_MODELS: dict[str, SplitModel] = {}
+
+
+@cache
+def split_model(device_index: int) -> SplitModel:
+    name = torch.cuda.get_device_properties(device_index).name
+
+    for key, model in SPLIT_MODELS.items():
+        if key in name:
+            return model
+
+    return DEFAULT_SPLIT_MODEL
 
 
 @cache
@@ -121,9 +154,10 @@ def choose_num_splits(
 
     Model: DRAM saturates once `saturating` blocks run at once. A wave of n concurrent blocks, each
     reading W bytes, then takes W * max(n, saturating) / bandwidth. The tensor-core kernel keeps
-    up to 32 KB in flight per block, so about 0.8 blocks per SM saturate DRAM; the CUDA-core kernel
-    is issue-bound per block and needs every resident slot. Splits add their FP32 outputs (written,
-    then read) and the combine kernel's fixed cost.
+    up to 32 KB in flight per block, so a fraction of the resident blocks saturates DRAM (how many
+    depends on the GPU's bandwidth per SM; see SplitModel); the CUDA-core kernel is issue-bound
+    per block and needs every resident slot. Splits add their FP32 outputs (written, then read) and
+    the combine kernel's fixed cost.
 
     On an 80-SM RTX 3080 Ti holding 240 tensor-core blocks, 64 sequence-heads of 4K tokens run
     best unsplit (64 blocks already saturate), while 256 sequence-heads prefer 3-4 splits: a single
@@ -131,32 +165,52 @@ def choose_num_splits(
     """
 
     device_index = device.index if device.index is not None else torch.cuda.current_device()
-    capacity = _resident_blocks(device_index, queries_per_cta, tensor_cores)
-    saturating = (
-        int(TC_SATURATING_BLOCKS_PER_SM * _multiprocessor_count(device_index))
-        if tensor_cores
-        else capacity
-    )
-    blocks_without_split = max(num_seqs * num_kv_heads, 1)
     kv_blocks = math.ceil((max_seq_len or 32768) / block_size)
     max_splits = max(1, min(MAX_SPLITS, kv_blocks // MIN_KV_BLOCKS_PER_SPLIT))
+    cost = functools.partial(
+        modeled_split_cost,
+        num_seqs=num_seqs,
+        num_kv_heads=num_kv_heads,
+        kv_blocks=kv_blocks,
+        block_size=block_size,
+        queries_per_cta=queries_per_cta,
+        capacity=_resident_blocks(device_index, queries_per_cta, tensor_cores),
+        sm_count=_multiprocessor_count(device_index),
+        tensor_cores=tensor_cores,
+        model=split_model(device_index),
+    )
 
-    # Each split writes, and the combine pass reads, one FP32 output row and one LSE per query head.
-    partial_bytes = queries_per_cta * (128 + 1) * 4 * 2
+    return min(range(1, max_splits + 1), key=cost)
 
-    def modeled_bytes(splits: int) -> float:
-        grid = blocks_without_split * splits
-        bytes_per_block = math.ceil(kv_blocks / splits) * block_size * KV_BYTES_PER_TOKEN
-        full_waves, tail = divmod(grid, capacity)
-        busy_slots = full_waves * max(capacity, saturating) + (max(tail, saturating) if tail else 0)
-        cost = busy_slots * (bytes_per_block + BLOCK_OVERHEAD_BYTES)
 
-        if splits > 1:
-            cost += PARTIAL_TRAFFIC_WEIGHT * grid * partial_bytes + COMBINE_OVERHEAD_BYTES
+def modeled_split_cost(
+    splits: int,
+    *,
+    num_seqs: int,
+    num_kv_heads: int,
+    kv_blocks: int,
+    block_size: int,
+    queries_per_cta: int,
+    capacity: int,
+    sm_count: int,
+    tensor_cores: bool,
+    model: SplitModel,
+) -> float:
+    """The cost choose_num_splits minimizes, in bytes of equivalent DRAM traffic."""
 
-        return cost
+    saturating = int(model.saturating_blocks_per_sm * sm_count) if tensor_cores else capacity
+    grid = max(num_seqs * num_kv_heads, 1) * splits
+    bytes_per_block = math.ceil(kv_blocks / splits) * block_size * KV_BYTES_PER_TOKEN
+    full_waves, tail = divmod(grid, capacity)
+    busy_slots = full_waves * max(capacity, saturating) + (max(tail, saturating) if tail else 0)
+    cost = busy_slots * (bytes_per_block + model.block_overhead_bytes)
 
-    return min(range(1, max_splits + 1), key=modeled_bytes)
+    if splits > 1:
+        # Each split writes, and the combine pass reads, one FP32 row and one LSE per query head.
+        partial_bytes = queries_per_cta * (128 + 1) * 4 * 2
+        cost += model.partial_traffic_weight * grid * partial_bytes + model.combine_overhead_bytes
+
+    return cost
 
 
 def paged_decode_attention(
