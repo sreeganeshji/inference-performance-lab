@@ -1,4 +1,7 @@
 import math
+import subprocess
+import sys
+from pathlib import Path
 
 import pytest
 import torch
@@ -218,3 +221,24 @@ def test_matches_vllm_flash_attention(heads: tuple[int, int]) -> None:
     actual = paged_decode_attention(query, key_cache, value_cache, block_table, seq_lens, scale)
 
     torch.testing.assert_close(actual, expected, rtol=1.6e-2, atol=1e-2)
+
+
+@pytest.mark.gpu
+@pytest.mark.vllm
+@requires_cuda
+def test_vllm_custom_backend_matches_flash_attention() -> None:
+    # Two short vLLM runs in fresh processes (about two minutes): FLASH_ATTN, then CUSTOM.
+    pytest.importorskip("vllm")
+    script = Path(__file__).resolve().parents[1] / "benchmarks" / "vllm_attention_check.py"
+    completed = subprocess.run(
+        [sys.executable, str(script), "--enforce-eager", "--max-tokens", "16"],
+        capture_output=True,
+        text=True,
+        timeout=1200,
+        check=False,
+    )
+
+    assert completed.returncode == 0, completed.stdout[-2000:] + completed.stderr[-2000:]
+    assert "Using AttentionBackendEnum.CUSTOM backend" in completed.stdout
+    assert "Lab decode kernel ran on a mixed decode + prefill batch" in completed.stdout
+    assert "identical greedy prefix: 128/128 tokens" in completed.stdout

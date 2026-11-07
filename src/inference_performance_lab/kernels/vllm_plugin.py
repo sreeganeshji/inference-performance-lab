@@ -41,6 +41,22 @@ def supports_fused_add_rms_norm(
 
 
 def register() -> None:
+    register_attention_backend()
+    register_fused_add_rms_norm()
+
+
+def register_attention_backend() -> None:
+    """Make the decode-attention backend selectable with --attention-backend CUSTOM."""
+
+    from vllm.v1.attention.backends.registry import AttentionBackendEnum, register_backend
+
+    register_backend(
+        AttentionBackendEnum.CUSTOM,
+        "inference_performance_lab.kernels.vllm_attention.LabDecodeAttentionBackend",
+    )
+
+
+def register_fused_add_rms_norm() -> None:
     from vllm import ir
 
     op = ir.ops.fused_add_rms_norm
