@@ -1,0 +1,6 @@
+==PROF== Connected to process 55965 (/usr/bin/python3.12)
+==PROF== Profiling "paged_decode_attention_tc_kernel": 0%....50%....100% - 50 passes
+==PROF== Profiling "combine_splits_kernel": 0%....50%....100% - 50 passes
+lab-gqa-split-tc: splits=3
+==PROF== Disconnected from process 55965
+==PROF== Report: /home/ubuntu/.cache/ipl-decode-ncu/a100-sxm4-40gb-lab-gqa-split-tc-b16-c16384.ncu-rep
