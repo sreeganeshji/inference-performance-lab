@@ -37,7 +37,18 @@ def start_server(backend: str, args: argparse.Namespace, log_path: Path) -> subp
     env = os.environ.copy()
     # The baseline runs without this lab's plugin, exactly as stock vLLM would.
     env["VLLM_PLUGINS"] = "inference_performance_lab" if backend == "CUSTOM" else ""
-    command = [
+    log = log_path.open("w")
+    return subprocess.Popen(
+        serve_command(backend, args),
+        env=env,
+        stdout=log,
+        stderr=subprocess.STDOUT,
+        start_new_session=True,
+    )
+
+
+def serve_command(backend: str, args: argparse.Namespace) -> list[str]:
+    return [
         "vllm",
         "serve",
         MODEL,
@@ -63,10 +74,6 @@ def start_server(backend: str, args: argparse.Namespace, log_path: Path) -> subp
         "--port",
         str(args.port),
     ]
-    log = log_path.open("w")
-    return subprocess.Popen(
-        command, env=env, stdout=log, stderr=subprocess.STDOUT, start_new_session=True
-    )
 
 
 def wait_until_ready(server: subprocess.Popen, port: int, timeout_s: float = 1200) -> None:

@@ -6,6 +6,7 @@
 #   scripts/attention_gpu_run.sh kernels   CUDA-graph-timed kernel grid, plus a split-count sweep
 #   scripts/attention_gpu_run.sh check     greedy FLASH_ATTN vs CUSTOM on Qwen2.5-7B-Instruct (~15 GB download)
 #   scripts/attention_gpu_run.sh serving   serving A/B, FLASH_ATTN vs CUSTOM (about an hour)
+#   scripts/attention_gpu_run.sh profile   Nsight Systems traces: attention share, scheduler time
 #   scripts/attention_gpu_run.sh all       every step in order
 #
 # Results go to results/data/attention/<gpu tag>-*.
@@ -85,6 +86,13 @@ setup() {
     command -v uv >/dev/null || curl -LsSf https://astral.sh/uv/install.sh | sh
     export PATH="$HOME/.local/bin:$PATH"
     uv venv --python 3.12 "$venv"
+
+    # Triton compiles a small C launcher against Python.h at first use; system Pythons on bare
+    # images ship without headers.
+    if ! "$python" -c 'import os, sysconfig; raise SystemExit(not os.path.exists(sysconfig.get_paths()["include"] + "/Python.h"))'; then
+        sudo DEBIAN_FRONTEND=noninteractive apt-get install -y python3.12-dev
+    fi
+
     uv pip install --python "$python" vllm==0.33.0 flashinfer-python==0.7.2.post1 pytest ninja numpy
     uv pip install --python "$python" --no-deps -e .
     nvidia-smi
@@ -93,7 +101,9 @@ setup() {
 }
 
 run_tests() {
-    "$python" -m pytest -p no:cacheprovider -q tests/test_paged_decode_attention.py
+    mkdir -p "$out_dir"
+    "$python" -m pytest -p no:cacheprovider -q tests/test_paged_decode_attention.py |
+        tee "$out_dir/$(gpu_tag)-tests-$stamp.txt"
 }
 
 kernels() {
@@ -111,7 +121,8 @@ kernels() {
 
 check() {
     mkdir -p "$out_dir"
-    "$python" benchmarks/vllm_attention_check.py --model Qwen/Qwen2.5-7B-Instruct --gpu-memory-utilization 0.85 |
+    "$python" benchmarks/vllm_attention_check.py --model Qwen/Qwen2.5-7B-Instruct \
+        --revision a09a35458c702b33eeacc393d103063234e8bc28 --gpu-memory-utilization 0.85 |
         tee "$out_dir/$(gpu_tag)-vllm-check-$stamp.txt"
 }
 
@@ -121,12 +132,27 @@ serving() {
         --result-dir "$out_dir/serving/$(gpu_tag)-$stamp"
 }
 
+profile() {
+    local dir
+    dir="$out_dir/serving-profile/$(gpu_tag)-$stamp"
+
+    # A long-context decode cell, where attention matters most, and a many-sequence cell, where
+    # the scheduler does the most work per step.
+    for backend in FLASH_ATTN CUSTOM; do
+        for cell in 4096:256:32 1024:128:128; do
+            "$python" benchmarks/profile_serving_steps.py --backend "$backend" --cell "$cell" \
+                --result-dir "$dir/$backend-${cell//:/-}"
+        done
+    done
+}
+
 case "${1:-all}" in
     setup) setup ;;
     test) run_tests ;;
     kernels) kernels ;;
     check) check ;;
     serving) serving ;;
-    all) setup && run_tests && kernels && check && serving ;;
-    *) echo "usage: $0 {setup|test|kernels|check|serving|all}" >&2; exit 2 ;;
+    profile) profile ;;
+    all) setup && run_tests && kernels && check && serving && profile ;;
+    *) echo "usage: $0 {setup|test|kernels|check|serving|profile|all}" >&2; exit 2 ;;
 esac

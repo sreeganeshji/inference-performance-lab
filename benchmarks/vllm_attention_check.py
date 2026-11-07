@@ -64,6 +64,7 @@ def run_worker(args: argparse.Namespace) -> None:
 
     llm = LLM(
         model=args.model,
+        revision=args.revision,
         load_format="dummy" if args.dummy else "auto",
         skip_tokenizer_init=args.dummy,
         dtype="bfloat16",
@@ -101,6 +102,7 @@ def main() -> None:
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
     parser.add_argument("--model", help="a real checkpoint; default: dummy Qwen2.5-7B architecture")
+    parser.add_argument("--revision", help="the checkpoint's Hugging Face revision")
     parser.add_argument("--enforce-eager", action="store_true")
     parser.add_argument("--max-tokens", type=int, default=48)
     parser.add_argument("--gpu-memory-utilization", type=float, default=0.6)
@@ -136,6 +138,7 @@ def main() -> None:
             str(args.gpu_memory_utilization),
         ]
         command += ["--dummy"] if dummy else []
+        command += ["--revision", args.revision] if args.revision else []
         command += ["--enforce-eager"] if args.enforce_eager else []
 
         completed = subprocess.run(
