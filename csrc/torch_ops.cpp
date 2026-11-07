@@ -33,3 +33,17 @@ STABLE_TORCH_LIBRARY_IMPL(inference_performance_lab, CUDA, library) {
     library.impl("paged_decode_attention", TORCH_BOX(&paged_decode_attention_cuda));
     library.impl("paged_decode_attention_blocks_per_sm", TORCH_BOX(&paged_decode_attention_blocks_per_sm));
 }
+
+// Prefill attention over packed variable-length sequences (csrc/flash_prefill_attention_kernel.cu).
+void flash_prefill_attention_cuda(ts::Tensor& out, const ts::Tensor& query, const ts::Tensor& key,
+                                  const ts::Tensor& value, const ts::Tensor& cu_seqlens, int64_t max_seqlen,
+                                  double scale, bool causal, int64_t variant);
+
+STABLE_TORCH_LIBRARY_FRAGMENT(inference_performance_lab, library) {
+    library.def("flash_prefill_attention(Tensor(a!) out, Tensor query, Tensor key, Tensor value, "
+                "Tensor cu_seqlens, int max_seqlen, float scale, bool causal, int variant) -> ()");
+}
+
+STABLE_TORCH_LIBRARY_IMPL(inference_performance_lab, CUDA, library) {
+    library.impl("flash_prefill_attention", TORCH_BOX(&flash_prefill_attention_cuda));
+}

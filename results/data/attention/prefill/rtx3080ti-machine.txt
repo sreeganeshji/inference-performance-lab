@@ -1,0 +1,9 @@
+# 2026-11-07T19:44:49Z
+name, driver_version, memory.total [MiB], clocks.max.sm [MHz], clocks.max.memory [MHz], power.limit [W], pcie.link.gen.max
+NVIDIA GeForce RTX 3080 Ti, 595.95, 12288 MiB, 2100 MHz, 9501 MHz, 350.00 W, 4
+Cuda compilation tools, release 13.3, V13.3.73
+Build cuda_13.3.r13.3/compiler.38244171_0
+Version 2026.2.1.0 (build 38283040) (public-release)
+torch 2.14.0+cu130 cuda 13.0 vllm 0.33.0
+sm 8.6 SMs 80 L2 bytes 6291456 smem/SM 102400
+Linux 6.18.33.2-microsoft-standard-WSL2

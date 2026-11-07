@@ -23,6 +23,7 @@ def load_extension(*, verbose: bool = False) -> None:
             str(repo_root / "csrc" / "fused_add_rms_norm_kernel.cu"),
             str(repo_root / "csrc" / "silu_and_mul_kernel.cu"),
             str(repo_root / "csrc" / "paged_decode_attention_kernel.cu"),
+            str(repo_root / "csrc" / "flash_prefill_attention_kernel.cu"),
         ],
         extra_cflags=["-O3", f"-DTORCH_TARGET_VERSION={TORCH_TARGET_VERSION}"],
         extra_cuda_cflags=[
@@ -232,6 +233,64 @@ def paged_decode_attention(
         queries_per_cta,
         splits,
         tensor_cores,
+    )
+
+    return out
+
+
+# Prefill kernel variants in the order they were built; each adds one optimization to the last
+# (docs/flash-prefill.md measures every step). The index is the kernel's variant argument.
+PREFILL_VARIANTS = (
+    "simt",
+    "mma",
+    "swizzle",
+    "cp_async",
+    "fast_exp2",
+    "hoisted",
+    "heavy_first",
+    "skip_masked",
+)
+PREFILL_DEFAULT_VARIANT = PREFILL_VARIANTS[-1]
+
+
+def flash_prefill_attention(
+    query: torch.Tensor,
+    key: torch.Tensor,
+    value: torch.Tensor,
+    cu_seqlens: torch.Tensor,
+    max_seqlen: int,
+    scale: float,
+    *,
+    causal: bool = True,
+    variant: str = PREFILL_DEFAULT_VARIANT,
+    out: torch.Tensor | None = None,
+) -> torch.Tensor:
+    """Prefill attention over packed variable-length sequences with no prefix cache.
+
+    query: [total_tokens, num_q_heads, 128]; key and value: [total_tokens, num_kv_heads, 128];
+    cu_seqlens: int32 [num_seqs + 1], so sequence s owns tokens cu_seqlens[s]:cu_seqlens[s + 1] of
+    all three. Token and head strides may be any multiple of 8 elements (for example slices of a
+    fused QKV projection). max_seqlen must be at least the longest sequence; it sizes the grid.
+    """
+
+    load_extension()
+
+    if variant not in PREFILL_VARIANTS:
+        raise ValueError(f"variant must be one of {PREFILL_VARIANTS}")
+
+    if out is None:
+        out = torch.empty(query.shape, dtype=query.dtype, device=query.device)
+
+    torch.ops.inference_performance_lab.flash_prefill_attention(
+        out,
+        query,
+        key,
+        value,
+        cu_seqlens,
+        max_seqlen,
+        scale,
+        causal,
+        PREFILL_VARIANTS.index(variant),
     )
 
     return out

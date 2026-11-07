@@ -73,3 +73,50 @@ def paged_decode_attention_reference(
         )
 
     return output.to(query.dtype)
+
+
+def flash_prefill_attention_reference(
+    query: torch.Tensor,
+    key: torch.Tensor,
+    value: torch.Tensor,
+    cu_seqlens: torch.Tensor,
+    scale: float,
+    *,
+    causal: bool = True,
+    chunk_rows: int = 512,
+) -> torch.Tensor:
+    """FP32 oracle for packed variable-length prefill (GQA aware); returns FP32.
+
+    Each sequence's queries attend to that sequence's keys; with causal=True, query row i sees key
+    rows 0..i. Query rows are processed chunk_rows at a time so an 8K-token sequence's score matrix
+    never has to exist all at once.
+    """
+
+    total_tokens, num_q_heads, head_dim = query.shape
+    num_kv_heads = key.shape[1]
+    group_size = num_q_heads // num_kv_heads
+    output = torch.zeros(
+        (total_tokens, num_q_heads, head_dim), dtype=torch.float32, device=query.device
+    )
+    bounds = cu_seqlens.tolist()
+
+    for start, end in zip(bounds[:-1], bounds[1:], strict=True):  # noqa: RUF007
+        keys = key[start:end].float()
+        values = value[start:end].float()
+        columns = torch.arange(end - start, device=query.device)
+
+        for row_start in range(start, end, chunk_rows):
+            row_end = min(row_start + chunk_rows, end)
+            queries = query[row_start:row_end].float().view(-1, num_kv_heads, group_size, head_dim)
+            scores = torch.einsum("rhgd,khd->hgrk", queries, keys) * scale
+
+            if causal:
+                rows = torch.arange(row_start - start, row_end - start, device=query.device)
+                scores.masked_fill_(columns[None, :] > rows[:, None], float("-inf"))
+
+            probabilities = scores.softmax(dim=-1)
+            output[row_start:row_end] = torch.einsum(
+                "hgrk,khd->rhgd", probabilities, values
+            ).reshape(-1, num_q_heads, head_dim)
+
+    return output
