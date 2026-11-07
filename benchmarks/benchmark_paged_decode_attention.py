@@ -2,7 +2,9 @@
 FlashInfer, timed with CUDA-graph replay so host launch overhead stays out of the numbers.
 
 Method:
-- Every implementation reads the same scattered paged cache (vLLM's FLASH_ATTN layout).
+- Every implementation reads the same scattered paged cache. By default it is laid out as vLLM
+  0.33 allocates it for FLASH_ATTN (KV cache layout LBNHC: each token's K and V rows for one head
+  side by side); --kv-layout separate uses two independent [blocks, 16, heads, 128] pools.
 - Calls rotate across independent KV pools until a graph replay touches at least three times the
   L2 capacity, so no call reads data an earlier call left in L2.
 - Each implementation's calls are captured in one CUDA graph; trials replay the graphs in a
@@ -79,19 +81,37 @@ def minimum_bytes(batch_size: int, context_len: int, num_q_heads: int, num_kv_he
     )
 
 
+KV_LAYOUTS = ("vllm", "separate")
+
+
 def make_problem(
-    batch_size: int, context_len: int, num_q_heads: int, num_kv_heads: int, rotations: int
+    batch_size: int,
+    context_len: int,
+    num_q_heads: int,
+    num_kv_heads: int,
+    rotations: int,
+    kv_layout: str = "vllm",
 ):
     torch.manual_seed(0)
     blocks_per_seq = math.ceil(context_len / BLOCK_SIZE)
     num_blocks = batch_size * blocks_per_seq
 
-    key_pools = torch.randn(
-        (rotations, num_blocks, BLOCK_SIZE, num_kv_heads, HEAD_DIM),
-        device="cuda",
-        dtype=torch.bfloat16,
-    )
-    value_pools = torch.randn_like(key_pools)
+    if kv_layout == "vllm":
+        # [blocks, 16, heads, K | V]: K and V are strided views, exactly as vLLM's FlashAttention
+        # backend hands them to the kernel.
+        pools = torch.randn(
+            (rotations, num_blocks, BLOCK_SIZE, num_kv_heads, 2 * HEAD_DIM),
+            device="cuda",
+            dtype=torch.bfloat16,
+        )
+        key_pools, value_pools = pools.split(HEAD_DIM, dim=-1)
+    else:
+        key_pools = torch.randn(
+            (rotations, num_blocks, BLOCK_SIZE, num_kv_heads, HEAD_DIM),
+            device="cuda",
+            dtype=torch.bfloat16,
+        )
+        value_pools = torch.randn_like(key_pools)
 
     # Scatter each sequence's blocks across its pool, as a long-running block allocator would.
     block_table = (
@@ -243,11 +263,12 @@ def benchmark_config(
     *,
     trials: int,
     target_ms: float,
+    kv_layout: str = "vllm",
 ) -> list[Result]:
     l2_bytes = torch.cuda.get_device_properties(0).L2_cache_size
     per_call = kv_bytes(batch_size, context_len, num_kv_heads)
     rotations = max(1, math.ceil(3 * l2_bytes / per_call))
-    problem = make_problem(batch_size, context_len, num_q_heads, num_kv_heads, rotations)
+    problem = make_problem(batch_size, context_len, num_q_heads, num_kv_heads, rotations, kv_layout)
     scale = HEAD_DIM**-0.5
 
     runs: dict[str, tuple[Callable[[int], None], torch.Tensor, int | None]] = {}
@@ -415,6 +436,7 @@ def main() -> None:
         default=[],
         help="also time lab-gqa-split-tc at these split counts",
     )
+    parser.add_argument("--kv-layout", choices=KV_LAYOUTS, default="vllm")
     parser.add_argument("--trials", type=int, default=9)
     parser.add_argument("--target-ms", type=float, default=20.0)
     parser.add_argument("--output", type=Path, help="append one JSON line per result")
@@ -424,7 +446,8 @@ def main() -> None:
     info = environment()
 
     print(
-        f"# {args.model}: {num_q_heads} query heads, {num_kv_heads} KV heads, head_dim {HEAD_DIM}"
+        f"# {args.model}: {num_q_heads} query heads, {num_kv_heads} KV heads, head_dim {HEAD_DIM}, "
+        f"KV layout {args.kv_layout}"
     )
     print("# " + ", ".join(f"{key}={value}" for key, value in info.items()))
     print()
@@ -443,6 +466,7 @@ def main() -> None:
                 num_kv_heads,
                 trials=args.trials,
                 target_ms=args.target_ms,
+                kv_layout=args.kv_layout,
             )
 
             for result in results:
@@ -457,7 +481,15 @@ def main() -> None:
 
                     with args.output.open("a") as file:
                         file.write(
-                            json.dumps({"model": args.model, **asdict(result), "env": info}) + "\n"
+                            json.dumps(
+                                {
+                                    "model": args.model,
+                                    "kv_layout": args.kv_layout,
+                                    **asdict(result),
+                                    "env": info,
+                                }
+                            )
+                            + "\n"
                         )
 
 
