@@ -159,6 +159,36 @@ def test_padded_slots_write_zeros() -> None:
 
 @pytest.mark.gpu
 @requires_cuda
+@pytest.mark.parametrize(
+    ("variant", "num_splits"),
+    [(variant, None) for variant in DECODE_VARIANTS] + [("gqa_split", 7), ("gqa_split_tc", 7)],
+)
+@torch.inference_mode()
+def test_stale_cache_slots_are_ignored(variant: str, num_splits: int | None) -> None:
+    # vLLM never clears freed blocks, so a slot no valid token owns can hold anything, NaN
+    # included, and 0 * NaN is NaN: the kernel must keep those values out of both products.
+    seq_lens = [1, 15, 17, 300, 2049]
+    query, key_cache, value_cache, block_table, seq_lens_tensor = make_inputs(seq_lens, 28, 4)
+    block_size = key_cache.shape[1]
+    owned = torch.zeros(key_cache.shape[:2], dtype=torch.bool, device="cuda")
+
+    for seq, seq_len in enumerate(seq_lens):
+        positions = torch.arange(seq_len, device="cuda")
+        blocks = block_table[seq, positions // block_size].long()
+        owned[blocks, positions % block_size] = True
+
+    key_cache[~owned] = float("nan")
+    value_cache[~owned] = float("nan")
+
+    assert_matches_reference(
+        (query, key_cache, value_cache, block_table, seq_lens_tensor),
+        variant=variant,
+        num_splits=num_splits,
+    )
+
+
+@pytest.mark.gpu
+@requires_cuda
 @torch.inference_mode()
 def test_large_scores_stay_finite() -> None:
     # A large scale pushes scores far past exp's range; the running max must keep it stable.

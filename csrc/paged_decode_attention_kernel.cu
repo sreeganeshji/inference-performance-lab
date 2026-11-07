@@ -333,7 +333,11 @@ __global__ void __launch_bounds__(kHeadDim) combine_splits_kernel(const DecodePa
 // dimensions (it must only match between Q and K), and which physical dimension each row of O^T
 // stands for. The kernel picks both so that every lane's fragment elements are contiguous.
 constexpr int kChunkTokens = 16;
-constexpr int kTcAccStride = kHeadDim + 4; // pads rows so warps' partial outputs spread across banks
+// Row stride of the epilogue's shared accumulator. The padding suits the earlier layout with heads
+// on M; with O^T each lane stores dimensions 8*group + j, which Nsight Compute shows 8-way
+// bank-conflicted at stride 128 and 132 alike (129 would give 2-way). The epilogue runs once per
+// block, so the conflicts cost nothing measurable.
+constexpr int kTcAccStride = kHeadDim + 4;
 
 __device__ __forceinline__ void mma_m16n8k16_bf16(float (&d)[4], uint32_t a0, uint32_t a1, uint32_t a2, uint32_t a3,
                                                   uint32_t b0, uint32_t b1) {
