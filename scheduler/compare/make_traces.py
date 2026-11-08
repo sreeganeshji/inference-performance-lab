@@ -13,6 +13,7 @@ KV_SEEDS = range(301, 306)
 PREFIX_SEEDS = range(401, 406)
 ASYNC_SEEDS = range(501, 516)
 PRESSURE_SEEDS = range(601, 611)
+TIGHT_SEEDS = range(701, 711)
 
 BLOCK_SIZE = 16
 MAX_ITERATIONS = 50_000
@@ -179,6 +180,39 @@ def pressure(seed):
     return config, ordered_by_arrival(requests)
 
 
+def tight(seed):
+    rng = random.Random(seed)
+    if seed % 2 == 0:
+        # A small step budget chunks long prompts: the first chunk fits but the whole prompt does not.
+        config = base_config(
+            num_blocks=rng.choice([32, 40, 48]),
+            max_tokens_per_step=rng.choice([32, 64]),
+            prefix_caching=1,
+            max_running_requests=8,
+        )
+        prompt_lengths = (200, 320)
+        output_lengths = (8, 16)
+    else:
+        # Long outputs under async, so preemption lands on blocks filled by output tokens.
+        config = base_config(
+            num_blocks=rng.choice([24, 32, 40]),
+            prefix_caching=1,
+            max_running_requests=8,
+            async_scheduling=1,
+        )
+        prompt_lengths = (16, 48)
+        output_lengths = (48, 96)
+
+    requests = []
+    for i in range(20):
+        prompt_len, max_tokens = clamp_to_pool(
+            rng.randint(*prompt_lengths), rng.randint(*output_lengths), config
+        )
+        prompt = random_tokens(rng, prompt_len)
+        requests.append(make_request(rng, i, rng.randint(0, 30), prompt, max_tokens))
+    return config, ordered_by_arrival(requests)
+
+
 def async_trace(seed):
     variant = [kv_pressure, shared_prefix, budget][seed % 3]
     config, requests = variant(seed)
@@ -193,6 +227,7 @@ FAMILIES = {
     "prefix": (shared_prefix, PREFIX_SEEDS),
     "async": (async_trace, ASYNC_SEEDS),
     "pressure": (pressure, PRESSURE_SEEDS),
+    "tight": (tight, TIGHT_SEEDS),
 }
 
 
