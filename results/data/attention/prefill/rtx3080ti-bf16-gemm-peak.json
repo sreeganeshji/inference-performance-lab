@@ -1,0 +1,69 @@
+{
+  "peak_tflops": 75.49220350551562,
+  "gemms": [
+    {
+      "m": 4096,
+      "n": 4096,
+      "k": 4096,
+      "median_tflops": 70.31038106837872,
+      "min_tflops": 69.30455865130669,
+      "max_tflops": 70.85205913395623,
+      "clock": {
+        "sm_clock_mhz_median": 1920,
+        "sm_clock_mhz_min": 210,
+        "sm_clock_mhz_max": 1935
+      }
+    },
+    {
+      "m": 8192,
+      "n": 8192,
+      "k": 8192,
+      "median_tflops": 71.09536206339197,
+      "min_tflops": 70.86723169580793,
+      "max_tflops": 71.69787476976575,
+      "clock": {
+        "sm_clock_mhz_median": 1770.0,
+        "sm_clock_mhz_min": 1755,
+        "sm_clock_mhz_max": 1905
+      }
+    },
+    {
+      "m": 16384,
+      "n": 8192,
+      "k": 8192,
+      "median_tflops": 75.49220350551562,
+      "min_tflops": 74.85576676156087,
+      "max_tflops": 75.78182127568756,
+      "clock": {
+        "sm_clock_mhz_median": 1890.0,
+        "sm_clock_mhz_min": 1770,
+        "sm_clock_mhz_max": 1905
+      }
+    },
+    {
+      "m": 8192,
+      "n": 8192,
+      "k": 16384,
+      "median_tflops": 67.0767537880979,
+      "min_tflops": 63.7683325479383,
+      "max_tflops": 68.17733230290719,
+      "clock": {
+        "sm_clock_mhz_median": 1695.0,
+        "sm_clock_mhz_min": 1635,
+        "sm_clock_mhz_max": 1875
+      }
+    }
+  ],
+  "env": {
+    "date": "2026-11-07T19:45:06+00:00",
+    "gpu": "NVIDIA GeForce RTX 3080 Ti",
+    "sm_count": "80",
+    "l2_bytes": "6291456",
+    "torch": "2.14.0+cu130",
+    "cuda": "13.0",
+    "python": "3.12.3",
+    "vllm": "0.33.0",
+    "flashinfer": "0.7.2.post1",
+    "driver": "595.95"
+  }
+}

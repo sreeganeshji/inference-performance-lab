@@ -1,0 +1,69 @@
+{
+  "peak_tflops": 268.34957948197473,
+  "gemms": [
+    {
+      "m": 4096,
+      "n": 4096,
+      "k": 4096,
+      "median_tflops": 251.14538927032808,
+      "min_tflops": 247.02799758930823,
+      "max_tflops": 254.21614221917156,
+      "clock": {
+        "sm_clock_mhz_median": 1305,
+        "sm_clock_mhz_min": 1095,
+        "sm_clock_mhz_max": 1320
+      }
+    },
+    {
+      "m": 8192,
+      "n": 8192,
+      "k": 8192,
+      "median_tflops": 266.3605157213692,
+      "min_tflops": 264.63267801173475,
+      "max_tflops": 267.6592430210442,
+      "clock": {
+        "sm_clock_mhz_median": 1275.0,
+        "sm_clock_mhz_min": 1260,
+        "sm_clock_mhz_max": 1305
+      }
+    },
+    {
+      "m": 16384,
+      "n": 8192,
+      "k": 8192,
+      "median_tflops": 265.7831711620718,
+      "min_tflops": 265.2169286187814,
+      "max_tflops": 267.4395166910199,
+      "clock": {
+        "sm_clock_mhz_median": 1260.0,
+        "sm_clock_mhz_min": 1260,
+        "sm_clock_mhz_max": 1275
+      }
+    },
+    {
+      "m": 8192,
+      "n": 8192,
+      "k": 16384,
+      "median_tflops": 268.34957948197473,
+      "min_tflops": 268.09765762007623,
+      "max_tflops": 269.26208976303525,
+      "clock": {
+        "sm_clock_mhz_median": 1260.0,
+        "sm_clock_mhz_min": 1260,
+        "sm_clock_mhz_max": 1290
+      }
+    }
+  ],
+  "env": {
+    "date": "2026-11-07T20:46:41+00:00",
+    "gpu": "NVIDIA A100-SXM4-40GB",
+    "sm_count": "108",
+    "l2_bytes": "41943040",
+    "torch": "2.14.0+cu130",
+    "cuda": "13.0",
+    "python": "3.12.3",
+    "vllm": "0.33.0",
+    "flashinfer": "0.7.2.post1",
+    "driver": "620.70.06"
+  }
+}
