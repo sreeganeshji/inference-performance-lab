@@ -1,0 +1,140 @@
+{
+ "backend": "FLASH_ATTN",
+ "cell": "1024:128:128",
+ "trace": "/home/ubuntu/.cache/ipl-traces/20261107T205302Z/FLASH_ATTN-i1024-o128-c128/trace.sqlite",
+ "environment": {
+  "gpu": "NVIDIA A100-SXM4-40GB",
+  "driver": "620.70.06",
+  "torch": "2.14.0+cu130",
+  "vllm": "0.33.0",
+  "nsys": "NVIDIA Nsight Systems version 2025.3.2.474-253236389321v0",
+  "python": "3.12.3"
+ },
+ "benchmark": {
+  "completed": 256,
+  "duration": 23.76990815299996,
+  "output_throughput": 1378.5497103767482,
+  "median_tpot_ms": 81.80915950787687
+ },
+ "analysis": {
+  "window_ms": 25508.639867,
+  "gpu_busy_fraction": 0.9959080183990902,
+  "min_gap_us": 10.0,
+  "kernel_ms": 25315.784912,
+  "attention_share_of_kernel_time": {
+   "lab decode": 0.0,
+   "FlashAttention-2": 0.20770636546637444
+  },
+  "top_kernels": [
+   {
+    "name": "ampere_bf16_s16816gemm_bf16_256x128_ldg8_f2f_stages_64x3_tn",
+    "share": 0.5490418364793224,
+    "total_ms": 13899.42504,
+    "count": 13784
+   },
+   {
+    "name": "flash_fwd_splitkv_kernel",
+    "share": 0.20608717431182447,
+    "total_ms": 5217.258578,
+    "count": 12796
+   },
+   {
+    "name": "ampere_bf16_s16816gemm_bf16_64x64_sliced1x2_ldg8_f2f_stages_64x5_tn",
+    "share": 0.052518865349095833,
+    "total_ms": 1329.556299,
+    "count": 11040
+   },
+   {
+    "name": "ampere_bf16_s16816gemm_bf16_256x128_ldg8_relu_f2f_stages_64x3_tn",
+    "share": 0.04450046632628777,
+    "total_ms": 1126.564234,
+    "count": 3892
+   },
+   {
+    "name": "ampere_bf16_s16816gemm_bf16_128x256_ldg8_f2f_stages_64x3_tn",
+    "share": 0.043213827136026665,
+    "total_ms": 1093.991953,
+    "count": 3724
+   },
+   {
+    "name": "triton_poi_fused_mul_silu_slice_1",
+    "share": 0.02704899296546844,
+    "total_ms": 684.766488,
+    "count": 12796
+   },
+   {
+    "name": "ampere_bf16_s16816gemm_bf16_128x128_ldg8_f2f_stages_64x3_tn",
+    "share": 0.019164243719341646,
+    "total_ms": 485.157872,
+    "count": 3892
+   },
+   {
+    "name": "triton_red_fused_fused_add_rms_norm_2",
+    "share": 0.008120948558958115,
+    "total_ms": 205.588187,
+    "count": 12796
+   },
+   {
+    "name": "ampere_bf16_s16816gemm_bf16_128x64_ldg8_relu_f2f_stages_64x4_tn",
+    "share": 0.006610613006143556,
+    "total_ms": 167.352857,
+    "count": 4340
+   },
+   {
+    "name": "triton_red_fused_fused_add_rms_norm_0",
+    "share": 0.005866763227617677,
+    "total_ms": 148.521716,
+    "count": 12796
+   },
+   {
+    "name": "ampere_bf16_s16816gemm_bf16_256x64_ldg8_f2f_stages_64x3_tn",
+    "share": 0.005587790048451017,
+    "total_ms": 141.459291,
+    "count": 749
+   },
+   {
+    "name": "ampere_bf16_s16816gemm_bf16_128x64_ldg8_f2f_stages_64x4_tn",
+    "share": 0.00512110181259072,
+    "total_ms": 129.644712,
+    "count": 4340
+   }
+  ],
+  "scheduler_ranges": {
+   "scheduler.schedule": {
+    "calls": 459,
+    "total_ms": 527.184445,
+    "median_us": 1452.539,
+    "p90_us": 1929.374,
+    "p99_us": 2054.447,
+    "max_us": 5206.764
+   },
+   "scheduler.update_from_output": {
+    "calls": 458,
+    "total_ms": 279.199838,
+    "median_us": 705.0485,
+    "p90_us": 1084.461,
+    "p99_us": 1360.257,
+    "max_us": 3480.616
+   },
+   "block_pool.get_new_blocks": {
+    "calls": 2446,
+    "total_ms": 9.213174,
+    "median_us": 2.36,
+    "p90_us": 9.251,
+    "p99_us": 15.881,
+    "max_us": 41.401
+   },
+   "block_pool.free_blocks": {
+    "calls": 257,
+    "total_ms": 9.374161,
+    "median_us": 33.991,
+    "p90_us": 46.211,
+    "p99_us": 72.402,
+    "max_us": 74.292
+   }
+  },
+  "scheduler_cpu_fraction_of_window": 0.0316122022657587,
+  "scheduler_ms_while_gpu_idle": 0.441521,
+  "scheduler_while_gpu_idle_fraction_of_window": 1.7308684520305867e-05
+ }
+}

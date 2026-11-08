@@ -1,0 +1,6 @@
+==PROF== Connected to process 56740 (/usr/bin/python3.12)
+==PROF== Profiling "BatchPrefillWithPagedKVCacheKernel": 0%....50%....100% - 50 passes
+==PROF== Profiling "PersistentVariableLengthMergeStatesKernel": 0%....50%....100% - 50 passes
+flashinfer-tensor-cores: splits=None
+==PROF== Disconnected from process 56740
+==PROF== Report: /home/ubuntu/.cache/ipl-decode-ncu/a100-sxm4-40gb-flashinfer-tensor-cores-b64-c4096.ncu-rep

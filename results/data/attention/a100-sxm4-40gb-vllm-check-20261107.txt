@@ -1,0 +1,23 @@
+[FLASH_ATTN] exit 0
+  non-default args: {'dtype': 'bfloat16', 'max_model_len': 8192, 'gpu_memory_utilization': 0.85, 'max_num_batched_tokens': 1024, 'disable_log_stats': Tr
+  Initializing a V1 LLM engine (v0.33.0) with config: model='Qwen/Qwen2.5-7B-Instruct', speculative_config=None, tokenizer='Qwen/Qwen2.5-7B-Instruct', s
+  world_size=1 rank=0 local_rank=0 distributed_init_method=file:///tmp/vllm_dist_e67b1a7b36ea4295b8aac3fca2e858a8 backend=nccl
+  Using AttentionBackendEnum.FLASH_ATTN backend.
+  [backbone] Using cache directory: /home/ubuntu/.cache/vllm/torch_compile_cache/41cb354138/rank_0_0/backbone for vLLM's torch.compile
+  [backbone] Dynamo bytecode transform time: 5.74 s
+  [backbone] Compiling a graph for compile range (1, 1024) takes 6.27 s
+  collected artifacts: 29 entries, 3 artifacts, 3948998 bytes total
+[CUSTOM] exit 0
+  non-default args: {'dtype': 'bfloat16', 'max_model_len': 8192, 'gpu_memory_utilization': 0.85, 'max_num_batched_tokens': 1024, 'disable_log_stats': Tr
+  Initializing a V1 LLM engine (v0.33.0) with config: model='Qwen/Qwen2.5-7B-Instruct', speculative_config=None, tokenizer='Qwen/Qwen2.5-7B-Instruct', s
+  world_size=1 rank=0 local_rank=0 distributed_init_method=file:///tmp/vllm_dist_63057c16558c40a3a19bc08a25f73d6a backend=nccl
+  Using AttentionBackendEnum.CUSTOM backend.
+  Lab decode attention enabled (heads 28/4, head_size 128, kv_cache_dtype auto)
+  [backbone] Using cache directory: /home/ubuntu/.cache/vllm/torch_compile_cache/847504728a/rank_0_0/backbone for vLLM's torch.compile
+  [backbone] Dynamo bytecode transform time: 5.73 s
+  [backbone] Compiling a graph for compile range (1, 1024) takes 6.25 s
+  collected artifacts: 29 entries, 3 artifacts, 3980356 bytes total
+  (EngineCore pid=34885) INFO 11-07 19:41:45 [vllm_attention.py:204] Lab decode kernel ran on a mixed decode + prefill batch
+  (EngineCore pid=34885) INFO 11-07 19:41:46 [vllm_attention.py:206] Lab decode kernel ran on a decode-only batch
+identical greedy prefix: 334/384 tokens; per prompt [48, 48, 48, 48, 42, 48, 4, 48]
+max |logprob difference| over the identical prefix: 0.104; all finite: True

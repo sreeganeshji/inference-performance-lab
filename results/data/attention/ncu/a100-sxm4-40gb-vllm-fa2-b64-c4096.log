@@ -1,0 +1,6 @@
+==PROF== Connected to process 57490 (/usr/bin/python3.12)
+==PROF== Profiling "flash_fwd_splitkv_kernel": 0%....50%....100% - 50 passes
+==PROF== Profiling "flash_fwd_splitkv_kernel": 0%....50%....100% - 50 passes
+vllm-fa2: splits=None
+==PROF== Disconnected from process 57490
+==PROF== Report: /home/ubuntu/.cache/ipl-decode-ncu/a100-sxm4-40gb-vllm-fa2-b64-c4096.ncu-rep

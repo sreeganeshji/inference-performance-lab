@@ -1,0 +1,18 @@
+[FLASH_ATTN] exit 0
+  non-default args: {'dtype': 'bfloat16', 'max_model_len': 8192, 'gpu_memory_utilization': 0.85, 'max_num_batched_tokens': 1024, 'disable_log_stats': Tr
+  Initializing a V1 LLM engine (v0.33.0) with config: model='Qwen/Qwen2.5-7B-Instruct', speculative_config=None, tokenizer='Qwen/Qwen2.5-7B-Instruct', s
+  world_size=1 rank=0 local_rank=0 distributed_init_method=file:///tmp/vllm_dist_79d7f2c5987341b1bfbd05afaae37c5c backend=nccl
+  Using AttentionBackendEnum.FLASH_ATTN backend.
+[FLASHINFER] exit 0
+  non-default args: {'dtype': 'bfloat16', 'max_model_len': 8192, 'gpu_memory_utilization': 0.85, 'max_num_batched_tokens': 1024, 'disable_log_stats': Tr
+  Initializing a V1 LLM engine (v0.33.0) with config: model='Qwen/Qwen2.5-7B-Instruct', speculative_config=None, tokenizer='Qwen/Qwen2.5-7B-Instruct', s
+  world_size=1 rank=0 local_rank=0 distributed_init_method=file:///tmp/vllm_dist_826b43d20f63430ca59349e648f505b5 backend=nccl
+  Using AttentionBackendEnum.FLASHINFER backend.
+  [backbone] Using cache directory: /home/ubuntu/.cache/vllm/torch_compile_cache/77f6850f54/rank_0_0/backbone for vLLM's torch.compile
+  [backbone] Dynamo bytecode transform time: 5.66 s
+  [backbone] Compiling a graph for compile range (1, 1024) takes 6.22 s
+  collected artifacts: 29 entries, 3 artifacts, 3949222 bytes total
+  FlashInfer resolved query dtypes: prefill=torch.bfloat16, decode=torch.bfloat16, decode_backend=flashinfer-native, kv_cache_dtype=torch.bfloat16, arch
+FLASHINFER against FLASH_ATTN:
+identical greedy prefix: 315/384 tokens; per prompt [48, 0, 48, 48, 48, 48, 27, 48]
+max |logprob difference| over the identical prefix: 0.066; all finite: True
