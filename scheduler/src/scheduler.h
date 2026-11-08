@@ -53,18 +53,15 @@ class Scheduler {
     std::vector<int> update_from_output(const std::vector<ScheduledRequest>& scheduled,
                                         const std::vector<std::optional<int>>& sampled);
 
-    // The request must already be out of running_.
-    void preempt(Request& request);
-
     int num_free_blocks() const { return kv_cache_.num_free_blocks(); }
     std::vector<int> running_ids() const;
     const Request* find(int id) const;
-    const KvCache& kv_cache() const { return kv_cache_; }
 
   private:
     void schedule_running(SchedulerOutput& output, int& budget, int long_prefill_threshold);
     void schedule_waiting(SchedulerOutput& output, int& budget, int long_prefill_threshold);
     void finish_scheduling(SchedulerOutput& output);
+    void preempt(Request& request);
     bool has_reached_max_tokens(const Request& request) const;
     bool check_stop(Request& request) const;
     void release(Request& request);

@@ -165,8 +165,7 @@ void Scheduler::finish_scheduling(SchedulerOutput& output) {
 
         request.num_computed_tokens += scheduled.num_tokens;
         request.num_in_flight_tokens += scheduled.num_tokens;
-        request.is_prefill_chunk = request.num_computed_tokens < request.num_tokens() + request.num_output_placeholders;
-        scheduled.samples_token = !request.is_prefill_chunk;
+        scheduled.samples_token = request.num_computed_tokens >= request.num_tokens() + request.num_output_placeholders;
 
         if (config_.async_scheduling && scheduled.samples_token) {
             ++request.num_output_placeholders;
@@ -176,8 +175,8 @@ void Scheduler::finish_scheduling(SchedulerOutput& output) {
     finished_since_last_schedule_ = false;
 }
 
-// Under async scheduling the last step may already be in flight. The +2 assumes every
-// other placeholder is a draft token that could be rejected, so this never overshoots.
+// num_computed_tokens counts placeholders. This is computed + 1, the length after the next
+// output, minus every other placeholder, which could still be a rejected draft token.
 bool Scheduler::has_reached_max_tokens(const Request& request) const {
     return request.num_output_placeholders > 0 && request.num_computed_tokens + 2 - request.num_output_placeholders >=
                                                       request.num_prompt_tokens + request.max_tokens;

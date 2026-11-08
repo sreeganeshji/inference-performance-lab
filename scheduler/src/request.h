@@ -25,7 +25,6 @@ struct Request {
 
     RequestStatus status = RequestStatus::Waiting;
     int num_computed_tokens = 0;
-    bool is_prefill_chunk = false;
 
     // Async scheduling runs ahead of the GPU, so num_computed_tokens is optimistic:
     // placeholders are outputs scheduled but not returned, in-flight tokens are in batches

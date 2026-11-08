@@ -15,11 +15,16 @@ endif()
 
 add_library(llm_scheduler STATIC
     src/block_pool.cpp
+    src/engine.cpp
+    src/fake_gpu.cpp
     src/kv_cache.cpp
     src/scheduler.cpp
     src/trace.cpp
 )
 target_include_directories(llm_scheduler PUBLIC src)
+
+find_package(Threads REQUIRED)
+target_link_libraries(llm_scheduler PUBLIC Threads::Threads)
 
 add_executable(replay src/replay.cpp)
 target_link_libraries(replay PRIVATE llm_scheduler)
@@ -35,3 +40,4 @@ endfunction()
 add_scheduler_test(block_pool_test)
 add_scheduler_test(kv_cache_test)
 add_scheduler_test(scheduler_test)
+add_scheduler_test(async_test)
