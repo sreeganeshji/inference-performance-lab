@@ -16,6 +16,7 @@ endif()
 add_library(llm_scheduler STATIC
     src/block_pool.cpp
     src/kv_cache.cpp
+    src/scheduler.cpp
 )
 target_include_directories(llm_scheduler PUBLIC src)
 
@@ -29,3 +30,4 @@ endfunction()
 
 add_scheduler_test(block_pool_test)
 add_scheduler_test(kv_cache_test)
+add_scheduler_test(scheduler_test)
