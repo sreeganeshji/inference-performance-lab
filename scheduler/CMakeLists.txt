@@ -17,8 +17,12 @@ add_library(llm_scheduler STATIC
     src/block_pool.cpp
     src/kv_cache.cpp
     src/scheduler.cpp
+    src/trace.cpp
 )
 target_include_directories(llm_scheduler PUBLIC src)
+
+add_executable(replay src/replay.cpp)
+target_link_libraries(replay PRIVATE llm_scheduler)
 
 enable_testing()
 
