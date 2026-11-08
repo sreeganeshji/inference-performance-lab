@@ -34,6 +34,25 @@ jobs:
           csrc/torch_ops.cpp
           csrc/fused_add_rms_norm_kernel.cu
           csrc/silu_and_mul_kernel.cu
+          scheduler/src/block_pool.cpp
+          scheduler/src/block_pool.h
+          scheduler/src/engine.cpp
+          scheduler/src/engine.h
+          scheduler/src/fake_gpu.cpp
+          scheduler/src/fake_gpu.h
+          scheduler/src/kv_cache.cpp
+          scheduler/src/kv_cache.h
+          scheduler/src/replay.cpp
+          scheduler/src/request.h
+          scheduler/src/scheduler.cpp
+          scheduler/src/scheduler.h
+          scheduler/src/trace.cpp
+          scheduler/src/trace.h
+          scheduler/tests/async_test.cpp
+          scheduler/tests/block_pool_test.cpp
+          scheduler/tests/check.h
+          scheduler/tests/kv_cache_test.cpp
+          scheduler/tests/scheduler_test.cpp
 
       - name: Check shell syntax
         run: |
