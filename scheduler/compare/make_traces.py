@@ -12,6 +12,7 @@ BUDGET_SEEDS = range(201, 206)
 KV_SEEDS = range(301, 306)
 PREFIX_SEEDS = range(401, 406)
 ASYNC_SEEDS = range(501, 516)
+PRESSURE_SEEDS = range(601, 611)
 
 BLOCK_SIZE = 16
 MAX_ITERATIONS = 50_000
@@ -156,6 +157,28 @@ def shared_prefix(seed):
     return config, ordered_by_arrival(requests)
 
 
+def pressure(seed):
+    rng = random.Random(seed)
+    index = seed % 5
+    config = base_config(
+        num_blocks=[24, 32, 40, 48, 64][index],
+        max_tokens_per_step=[16, 32, 48, 64, 96][index],
+        long_prefill_threshold=[0, 8, 0, 24, 0][index],
+        prefix_caching=1,
+        max_running_requests=[2, 4, 8, 6, 8][index],
+        async_scheduling=seed % 2,
+    )
+    prompts = [random_tokens(rng, rng.choice([32, 48, 64, 96, 128])) for _ in range(4)]
+
+    requests = []
+    for i in range(30):
+        group = rng.randrange(len(prompts))
+        prompt_len, max_tokens = clamp_to_pool(len(prompts[group]), rng.randint(8, 48), config)
+        prompt = prompts[group][:prompt_len]
+        requests.append(make_request(rng, i, rng.randint(0, 60), prompt, max_tokens, salt=group))
+    return config, ordered_by_arrival(requests)
+
+
 def async_trace(seed):
     variant = [kv_pressure, shared_prefix, budget][seed % 3]
     config, requests = variant(seed)
@@ -169,6 +192,7 @@ FAMILIES = {
     "kv": (kv_pressure, KV_SEEDS),
     "prefix": (shared_prefix, PREFIX_SEEDS),
     "async": (async_trace, ASYNC_SEEDS),
+    "pressure": (pressure, PRESSURE_SEEDS),
 }
 
 
