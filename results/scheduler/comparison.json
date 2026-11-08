@@ -1,0 +1,620 @@
+{
+ "matched": 10378,
+ "total": 10378,
+ "num_traces": 55,
+ "families": {
+  "light": {
+   "matched": 317,
+   "total": 317,
+   "traces": 5
+  },
+  "budget": {
+   "matched": 682,
+   "total": 682,
+   "traces": 5
+  },
+  "kv": {
+   "matched": 1134,
+   "total": 1134,
+   "traces": 5
+  },
+  "prefix": {
+   "matched": 933,
+   "total": 933,
+   "traces": 5
+  },
+  "async": {
+   "matched": 2953,
+   "total": 2953,
+   "traces": 15
+  },
+  "pressure": {
+   "matched": 1971,
+   "total": 1971,
+   "traces": 10
+  },
+  "tight": {
+   "matched": 2388,
+   "total": 2388,
+   "traces": 10
+  }
+ },
+ "vllm_version": "0.33.0",
+ "git_commit": "7917c1ed9d33b2b3ed888af3718f674be223fb97",
+ "git_dirty": false,
+ "date": "2026-11-08",
+ "machine": {
+  "cpu": "11th Gen Intel(R) Core(TM) i7-11700K @ 3.60GHz",
+  "os": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+  "python": "3.12.3",
+  "compiler": "g++ (Ubuntu 15.2.0-14ubuntu1~24~ppa1) 15.2.0"
+ },
+ "seeds": {
+  "light": [
+   101,
+   102,
+   103,
+   104,
+   105
+  ],
+  "budget": [
+   201,
+   202,
+   203,
+   204,
+   205
+  ],
+  "kv": [
+   301,
+   302,
+   303,
+   304,
+   305
+  ],
+  "prefix": [
+   401,
+   402,
+   403,
+   404,
+   405
+  ],
+  "async": [
+   501,
+   502,
+   503,
+   504,
+   505,
+   506,
+   507,
+   508,
+   509,
+   510,
+   511,
+   512,
+   513,
+   514,
+   515
+  ],
+  "pressure": [
+   601,
+   602,
+   603,
+   604,
+   605,
+   606,
+   607,
+   608,
+   609,
+   610
+  ],
+  "tight": [
+   701,
+   702,
+   703,
+   704,
+   705,
+   706,
+   707,
+   708,
+   709,
+   710
+  ]
+ },
+ "traces": [
+  {
+   "family": "light",
+   "seed": 101,
+   "matched": 61,
+   "total": 61,
+   "vllm_steps": 61,
+   "cpp_steps": 61,
+   "first_mismatch": null
+  },
+  {
+   "family": "light",
+   "seed": 102,
+   "matched": 74,
+   "total": 74,
+   "vllm_steps": 74,
+   "cpp_steps": 74,
+   "first_mismatch": null
+  },
+  {
+   "family": "light",
+   "seed": 103,
+   "matched": 60,
+   "total": 60,
+   "vllm_steps": 60,
+   "cpp_steps": 60,
+   "first_mismatch": null
+  },
+  {
+   "family": "light",
+   "seed": 104,
+   "matched": 53,
+   "total": 53,
+   "vllm_steps": 53,
+   "cpp_steps": 53,
+   "first_mismatch": null
+  },
+  {
+   "family": "light",
+   "seed": 105,
+   "matched": 69,
+   "total": 69,
+   "vllm_steps": 69,
+   "cpp_steps": 69,
+   "first_mismatch": null
+  },
+  {
+   "family": "budget",
+   "seed": 201,
+   "matched": 167,
+   "total": 167,
+   "vllm_steps": 167,
+   "cpp_steps": 167,
+   "first_mismatch": null
+  },
+  {
+   "family": "budget",
+   "seed": 202,
+   "matched": 101,
+   "total": 101,
+   "vllm_steps": 101,
+   "cpp_steps": 101,
+   "first_mismatch": null
+  },
+  {
+   "family": "budget",
+   "seed": 203,
+   "matched": 40,
+   "total": 40,
+   "vllm_steps": 40,
+   "cpp_steps": 40,
+   "first_mismatch": null
+  },
+  {
+   "family": "budget",
+   "seed": 204,
+   "matched": 37,
+   "total": 37,
+   "vllm_steps": 37,
+   "cpp_steps": 37,
+   "first_mismatch": null
+  },
+  {
+   "family": "budget",
+   "seed": 205,
+   "matched": 337,
+   "total": 337,
+   "vllm_steps": 337,
+   "cpp_steps": 337,
+   "first_mismatch": null
+  },
+  {
+   "family": "kv",
+   "seed": 301,
+   "matched": 255,
+   "total": 255,
+   "vllm_steps": 255,
+   "cpp_steps": 255,
+   "first_mismatch": null
+  },
+  {
+   "family": "kv",
+   "seed": 302,
+   "matched": 288,
+   "total": 288,
+   "vllm_steps": 288,
+   "cpp_steps": 288,
+   "first_mismatch": null
+  },
+  {
+   "family": "kv",
+   "seed": 303,
+   "matched": 171,
+   "total": 171,
+   "vllm_steps": 171,
+   "cpp_steps": 171,
+   "first_mismatch": null
+  },
+  {
+   "family": "kv",
+   "seed": 304,
+   "matched": 127,
+   "total": 127,
+   "vllm_steps": 127,
+   "cpp_steps": 127,
+   "first_mismatch": null
+  },
+  {
+   "family": "kv",
+   "seed": 305,
+   "matched": 293,
+   "total": 293,
+   "vllm_steps": 293,
+   "cpp_steps": 293,
+   "first_mismatch": null
+  },
+  {
+   "family": "prefix",
+   "seed": 401,
+   "matched": 204,
+   "total": 204,
+   "vllm_steps": 204,
+   "cpp_steps": 204,
+   "first_mismatch": null
+  },
+  {
+   "family": "prefix",
+   "seed": 402,
+   "matched": 179,
+   "total": 179,
+   "vllm_steps": 179,
+   "cpp_steps": 179,
+   "first_mismatch": null
+  },
+  {
+   "family": "prefix",
+   "seed": 403,
+   "matched": 182,
+   "total": 182,
+   "vllm_steps": 182,
+   "cpp_steps": 182,
+   "first_mismatch": null
+  },
+  {
+   "family": "prefix",
+   "seed": 404,
+   "matched": 188,
+   "total": 188,
+   "vllm_steps": 188,
+   "cpp_steps": 188,
+   "first_mismatch": null
+  },
+  {
+   "family": "prefix",
+   "seed": 405,
+   "matched": 180,
+   "total": 180,
+   "vllm_steps": 180,
+   "cpp_steps": 180,
+   "first_mismatch": null
+  },
+  {
+   "family": "async",
+   "seed": 501,
+   "matched": 369,
+   "total": 369,
+   "vllm_steps": 369,
+   "cpp_steps": 369,
+   "first_mismatch": null
+  },
+  {
+   "family": "async",
+   "seed": 502,
+   "matched": 207,
+   "total": 207,
+   "vllm_steps": 207,
+   "cpp_steps": 207,
+   "first_mismatch": null
+  },
+  {
+   "family": "async",
+   "seed": 503,
+   "matched": 58,
+   "total": 58,
+   "vllm_steps": 58,
+   "cpp_steps": 58,
+   "first_mismatch": null
+  },
+  {
+   "family": "async",
+   "seed": 504,
+   "matched": 161,
+   "total": 161,
+   "vllm_steps": 161,
+   "cpp_steps": 161,
+   "first_mismatch": null
+  },
+  {
+   "family": "async",
+   "seed": 505,
+   "matched": 205,
+   "total": 205,
+   "vllm_steps": 205,
+   "cpp_steps": 205,
+   "first_mismatch": null
+  },
+  {
+   "family": "async",
+   "seed": 506,
+   "matched": 146,
+   "total": 146,
+   "vllm_steps": 146,
+   "cpp_steps": 146,
+   "first_mismatch": null
+  },
+  {
+   "family": "async",
+   "seed": 507,
+   "matched": 211,
+   "total": 211,
+   "vllm_steps": 211,
+   "cpp_steps": 211,
+   "first_mismatch": null
+  },
+  {
+   "family": "async",
+   "seed": 508,
+   "matched": 162,
+   "total": 162,
+   "vllm_steps": 162,
+   "cpp_steps": 162,
+   "first_mismatch": null
+  },
+  {
+   "family": "async",
+   "seed": 509,
+   "matched": 44,
+   "total": 44,
+   "vllm_steps": 44,
+   "cpp_steps": 44,
+   "first_mismatch": null
+  },
+  {
+   "family": "async",
+   "seed": 510,
+   "matched": 338,
+   "total": 338,
+   "vllm_steps": 338,
+   "cpp_steps": 338,
+   "first_mismatch": null
+  },
+  {
+   "family": "async",
+   "seed": 511,
+   "matched": 197,
+   "total": 197,
+   "vllm_steps": 197,
+   "cpp_steps": 197,
+   "first_mismatch": null
+  },
+  {
+   "family": "async",
+   "seed": 512,
+   "matched": 107,
+   "total": 107,
+   "vllm_steps": 107,
+   "cpp_steps": 107,
+   "first_mismatch": null
+  },
+  {
+   "family": "async",
+   "seed": 513,
+   "matched": 203,
+   "total": 203,
+   "vllm_steps": 203,
+   "cpp_steps": 203,
+   "first_mismatch": null
+  },
+  {
+   "family": "async",
+   "seed": 514,
+   "matched": 177,
+   "total": 177,
+   "vllm_steps": 177,
+   "cpp_steps": 177,
+   "first_mismatch": null
+  },
+  {
+   "family": "async",
+   "seed": 515,
+   "matched": 368,
+   "total": 368,
+   "vllm_steps": 368,
+   "cpp_steps": 368,
+   "first_mismatch": null
+  },
+  {
+   "family": "pressure",
+   "seed": 601,
+   "matched": 191,
+   "total": 191,
+   "vllm_steps": 191,
+   "cpp_steps": 191,
+   "first_mismatch": null
+  },
+  {
+   "family": "pressure",
+   "seed": 602,
+   "matched": 119,
+   "total": 119,
+   "vllm_steps": 119,
+   "cpp_steps": 119,
+   "first_mismatch": null
+  },
+  {
+   "family": "pressure",
+   "seed": 603,
+   "matched": 116,
+   "total": 116,
+   "vllm_steps": 116,
+   "cpp_steps": 116,
+   "first_mismatch": null
+  },
+  {
+   "family": "pressure",
+   "seed": 604,
+   "matched": 113,
+   "total": 113,
+   "vllm_steps": 113,
+   "cpp_steps": 113,
+   "first_mismatch": null
+  },
+  {
+   "family": "pressure",
+   "seed": 605,
+   "matched": 458,
+   "total": 458,
+   "vllm_steps": 458,
+   "cpp_steps": 458,
+   "first_mismatch": null
+  },
+  {
+   "family": "pressure",
+   "seed": 606,
+   "matched": 222,
+   "total": 222,
+   "vllm_steps": 222,
+   "cpp_steps": 222,
+   "first_mismatch": null
+  },
+  {
+   "family": "pressure",
+   "seed": 607,
+   "matched": 107,
+   "total": 107,
+   "vllm_steps": 107,
+   "cpp_steps": 107,
+   "first_mismatch": null
+  },
+  {
+   "family": "pressure",
+   "seed": 608,
+   "matched": 129,
+   "total": 129,
+   "vllm_steps": 129,
+   "cpp_steps": 129,
+   "first_mismatch": null
+  },
+  {
+   "family": "pressure",
+   "seed": 609,
+   "matched": 124,
+   "total": 124,
+   "vllm_steps": 124,
+   "cpp_steps": 124,
+   "first_mismatch": null
+  },
+  {
+   "family": "pressure",
+   "seed": 610,
+   "matched": 392,
+   "total": 392,
+   "vllm_steps": 392,
+   "cpp_steps": 392,
+   "first_mismatch": null
+  },
+  {
+   "family": "tight",
+   "seed": 701,
+   "matched": 241,
+   "total": 241,
+   "vllm_steps": 241,
+   "cpp_steps": 241,
+   "first_mismatch": null
+  },
+  {
+   "family": "tight",
+   "seed": 702,
+   "matched": 370,
+   "total": 370,
+   "vllm_steps": 370,
+   "cpp_steps": 370,
+   "first_mismatch": null
+  },
+  {
+   "family": "tight",
+   "seed": 703,
+   "matched": 258,
+   "total": 258,
+   "vllm_steps": 258,
+   "cpp_steps": 258,
+   "first_mismatch": null
+  },
+  {
+   "family": "tight",
+   "seed": 704,
+   "matched": 152,
+   "total": 152,
+   "vllm_steps": 152,
+   "cpp_steps": 152,
+   "first_mismatch": null
+  },
+  {
+   "family": "tight",
+   "seed": 705,
+   "matched": 250,
+   "total": 250,
+   "vllm_steps": 250,
+   "cpp_steps": 250,
+   "first_mismatch": null
+  },
+  {
+   "family": "tight",
+   "seed": 706,
+   "matched": 150,
+   "total": 150,
+   "vllm_steps": 150,
+   "cpp_steps": 150,
+   "first_mismatch": null
+  },
+  {
+   "family": "tight",
+   "seed": 707,
+   "matched": 342,
+   "total": 342,
+   "vllm_steps": 342,
+   "cpp_steps": 342,
+   "first_mismatch": null
+  },
+  {
+   "family": "tight",
+   "seed": 708,
+   "matched": 281,
+   "total": 281,
+   "vllm_steps": 281,
+   "cpp_steps": 281,
+   "first_mismatch": null
+  },
+  {
+   "family": "tight",
+   "seed": 709,
+   "matched": 179,
+   "total": 179,
+   "vllm_steps": 179,
+   "cpp_steps": 179,
+   "first_mismatch": null
+  },
+  {
+   "family": "tight",
+   "seed": 710,
+   "matched": 165,
+   "total": 165,
+   "vllm_steps": 165,
+   "cpp_steps": 165,
+   "first_mismatch": null
+  }
+ ]
+}
